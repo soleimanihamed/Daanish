@@ -10,20 +10,23 @@ def load_config():
     Load configuration from config.ini or environment variables.
     Returns a ConfigParser object.
     """
-    # Step 1: Load Environment Variables from .env or config.ini
+    # Load environment variables from .env
     load_dotenv()
 
-    # Step 2: Define the path to config.ini
+    # First, check if CONFIG_PATH is set in the environment
     config_path = os.getenv('CONFIG_PATH')
-    if not config_path:
-        config_path = os.path.abspath(os.path.join(
-            os.path.dirname(__file__), 'config.ini'))
 
-    # Step 3: Load global config from config.ini
+    # If CONFIG_PATH is not set, look for config.ini in the project root
+    if not config_path:
+        project_root = os.path.abspath(os.path.join(
+            os.path.dirname(__file__), ".."))  # Moves up one directory
+        config_path = os.path.join(project_root, "config.ini")
+
+    # Load global config from config.ini
     global_config = ConfigParser()
     global_config.read(config_path)
 
-    # Step 4: Validate configuration
+    # Validate configuration
     if not global_config.sections():
         raise FileNotFoundError(f"config.ini not found at {config_path}")
 

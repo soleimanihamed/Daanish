@@ -1,4 +1,4 @@
-from Daanish.utils.config_utils import initialize_daanish
+from utils.config_utils import initialize_daanish
 import os
 import sys
 

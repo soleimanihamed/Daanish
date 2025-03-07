@@ -1,10 +1,10 @@
-# utils/data_utils.py
+# utils/CSV_data_utils.py
 
 import pandas as pd
 import os
 
 
-class DataUtils:
+class CSVDataUtils:
     @staticmethod
     def read_csv_file(filename, field_name=None, index_col=None, parse_dates=True):
         """

@@ -3,6 +3,11 @@ import os
 import sys
 from configparser import ConfigParser
 from dotenv import load_dotenv
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def load_config():
@@ -31,6 +36,33 @@ def load_config():
         raise FileNotFoundError(f"config.ini not found at {config_path}")
 
     return global_config
+
+
+def load_project_config(project_root):
+    """
+    Load project-specific configuration from project_config.ini.
+
+    Args:
+        project_root (str): The root directory of the project.
+
+    Returns:
+        ConfigParser: The project-specific configuration.
+    """
+    # Define the path to project_config.ini
+    config_path = os.path.join(project_root, 'project_config.ini')
+    logger.info(f"Loading project configuration from {config_path}")
+
+    # Load the configuration
+    project_config = ConfigParser()
+    project_config.read(config_path)
+
+    # Validate the configuration
+    if not project_config.sections():
+        raise FileNotFoundError(
+            f"project_config.ini not found at {config_path}")
+
+    logger.info("Project configuration loaded successfully")
+    return project_config
 
 
 def setup_python_path(global_config):

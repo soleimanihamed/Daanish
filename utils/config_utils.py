@@ -82,3 +82,34 @@ def initialize_daanish():
     setup_python_path(global_config)
     print("Daanish core setup complete.")
     return global_config
+
+
+def get_database_config(global_config):
+    """
+    Extract database configuration from the global config.
+
+    Args:
+        global_config (ConfigParser): The global configuration object.
+
+    Returns:
+        dict: A dictionary containing database configuration values.
+    """
+    if not global_config.has_section('DATABASE'):
+        raise ValueError("Missing [DATABASE] section in config.ini")
+
+    db_config = {
+        'server': global_config.get('DATABASE', 'server', fallback=None),
+        'database': global_config.get('DATABASE', 'database', fallback=None),
+        'username': global_config.get('DATABASE', 'username', fallback=None),
+        'password': global_config.get('DATABASE', 'password', fallback=None),
+        'use_database': global_config.getboolean('DATABASE', 'use_database', fallback=False)
+    }
+
+    # Check if any required field is missing or empty
+    missing_fields = [key for key, value in db_config.items(
+    ) if not value and key != 'use_database']
+    if missing_fields:
+        raise ValueError(
+            f"Missing or empty database configuration in config.ini: {missing_fields}")
+
+    return db_config

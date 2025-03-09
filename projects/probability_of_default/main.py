@@ -31,6 +31,36 @@ def load_project_configuration():
     return config
 
 
+def load_feature_config(project_root, input_data_folder, feature_config_file, use_database, db_utils=None):
+    """
+    Load feature configuration from a CSV file or database table.
+
+    Args:
+        project_root (str): Root directory of the project.
+        input_data_folder (str): Folder containing the feature configuration file.
+        feature_config_file (str): Name of the feature configuration file.
+        use_database (bool): Whether to use the database.
+        db_utils (DatabaseUtils): Database utility object (if using database).
+
+    Returns:
+        pd.DataFrame: Feature configuration as a DataFrame.
+    """
+    if use_database:
+        # Load feature configuration from the database
+        if db_utils is None:
+            raise ValueError(
+                "DatabaseUtils object is required when using the database.")
+        query = "SELECT * FROM dbo.PD_Model_Features"  # Replace with your table name
+        feature_config = db_utils.read_sql_query(query)
+    else:
+        # Load feature configuration from a CSV file
+        file_path = os.path.join(
+            project_root, input_data_folder, feature_config_file)
+        feature_config = CSVDataUtils.read_csv_file(file_path)
+
+    return feature_config
+
+
 def main():
     """
     Main function to run the project.
@@ -49,6 +79,8 @@ def main():
     feature_config_file = project_config['feature_config_file']
     use_database = project_config['use_database']
 
+    project_root = os.path.dirname(__file__)
+
     # Step 4: Load data
     if use_database:
         # Use database
@@ -58,17 +90,26 @@ def main():
         db_utils.connect()
         query = "SELECT * FROM dbo.loan"
         df = db_utils.read_sql_query(query)
-        db_utils.close_connection()
+
     else:
         # Use CSV
-        project_root = os.path.dirname(__file__)
         file_path = os.path.join(
             project_root, input_data_folder, input_data_file)
         df = CSVDataUtils.read_csv_file(file_path)
 
-    # Step 5: Print a sample of the DataFrame
-    print("Sample of the loaded DataFrame:")
+   # Step 5: Load feature configuration
+    feature_config = load_feature_config(
+        project_root, input_data_folder, feature_config_file, use_database, db_utils if use_database else None)
+
+    # Step 6: Print a sample of the DataFrames
+    print("Sample of the main DataFrame:")
     print(df.head())
+    print("\nSample of the feature configuration DataFrame:")
+    print(feature_config.head())
+
+    # Step 7: Close the database connection (if using database)
+    if use_database:
+        db_utils.close_connection()
 
 
 if __name__ == "__main__":

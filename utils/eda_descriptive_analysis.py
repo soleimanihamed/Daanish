@@ -3,7 +3,7 @@ import numpy as np
 from utils.save_utils import SaveUtils
 
 
-class CustomEDAAnalysis:
+class DescriptiveEDAAnalysis:
     def __init__(self, data):
         self.data = data
         self.save_utils = SaveUtils()  # Initialize SaveUtils for saving reports

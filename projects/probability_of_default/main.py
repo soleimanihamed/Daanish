@@ -2,6 +2,8 @@
 from utils.config_utils import initialize_daanish,  load_project_config, get_database_config
 from utils.csv_data_utils import CSVDataUtils
 from utils.database_utils import DatabaseUtils
+from utils.eda_sweetviz import SweetvizEDA
+from utils.save_utils import SaveUtils
 import os
 from configparser import ConfigParser
 import pandas as pd
@@ -14,11 +16,10 @@ def load_project_configuration():
     Returns:
         dict: A dictionary containing project configuration values.
     """
-    # Step 1: Load project-specific config
+
     project_root = os.path.dirname(__file__)
     project_config = load_project_config(project_root)
 
-    # Step 2: Extract configuration values
     config = {
         'input_data_folder': project_config.get('paths', 'input_data_folder'),
         'output_data_folder': project_config.get('paths', 'output_data_folder'),
@@ -61,6 +62,83 @@ def load_feature_config(project_root, input_data_folder, feature_config_file, us
     return feature_config
 
 
+def load_data(project_root, input_data_folder, input_data_file, use_database, global_config=None, query=None):
+    """
+    Load a dataset from a CSV file or database.
+
+    Args:
+        project_root (str): Root directory of the project.
+        input_data_folder (str): Folder containing the input data file.
+        input_data_file (str): Name of the input data file.
+        use_database (bool): Whether to use the database.
+        global_config (dict, optional): Global configuration containing database credentials.
+        query (str, optional): SQL query to execute (if using database).
+
+    Returns:
+        pd.DataFrame: The dataset as a DataFrame.
+        DatabaseUtils: The database utility object (if using database).
+    """
+    db_utils = None
+    if use_database:
+        if global_config is None:
+            raise ValueError(
+                "Global configuration is required when using the database.")
+        if query is None:
+            raise ValueError("Query is required when using the database.")
+
+        # Step 1: Get database configuration and connect
+        db_config = get_database_config(global_config)
+        db_utils = DatabaseUtils(
+            db_config['server'], db_config['database'], db_config['username'], db_config['password'])
+        db_utils.connect()
+
+        # Step 2: Load data from the database
+        df = db_utils.read_sql_query(query)
+    else:
+        # Step 3: Load data from a CSV file
+        file_path = os.path.join(
+            project_root, input_data_folder, input_data_file)
+        df = CSVDataUtils.read_csv_file(file_path)
+
+    return df, db_utils
+
+
+def perform_eda_Sweetviz(df, project_root, report_output_folder):
+    """
+    Perform exploratory data analysis (EDA) using Sweetviz.
+
+    Args:
+        df (pd.DataFrame): The dataset to analyze.
+        report_output_folder (str): Folder to save the EDA report.
+        report_output_folder (str): Folder to save the EDA report (relative to project_root).
+    """
+
+    # Construct the full output path
+    full_report_output_folder = os.path.join(
+        project_root, report_output_folder)
+
+    # Define the full path for the Sweetviz report
+    sweetviz_report_path = os.path.join(
+        full_report_output_folder, 'raw_sweetviz_report.html')
+
+    eda_service = SweetvizEDA(df)
+    eda_service.generate_report(output_file=sweetviz_report_path)
+
+
+def print_data_samples(df, feature_config):
+    """
+    Print samples of the main DataFrame and feature configuration DataFrame.
+
+    Args:
+        df (pd.DataFrame): The main dataset.
+        feature_config (pd.DataFrame): The feature configuration dataset.
+    """
+    print("\nSample of the feature configuration DataFrame:")
+    print(feature_config.head())
+    print("Sample of the main DataFrame:")
+    print(df.head())
+
+
 def main():
     """
     Main function to run the project.
@@ -81,33 +159,24 @@ def main():
 
     project_root = os.path.dirname(__file__)
 
-    # Step 4: Load data
-    if use_database:
-        # Use database
-        db_config = get_database_config(global_config)
-        db_utils = DatabaseUtils(
-            db_config['server'], db_config['database'], db_config['username'], db_config['password'])
-        db_utils.connect()
-        query = "SELECT * FROM dbo.loan"
-        df = db_utils.read_sql_query(query)
+    # Step 4: Load main dataset
+    main_data_query = "SELECT * FROM dbo.loan"  # Replace with your actual query
+    df, db_utils = load_data(project_root, input_data_folder, input_data_file,
+                             use_database, global_config, query=main_data_query)
 
-    else:
-        # Use CSV
-        file_path = os.path.join(
-            project_root, input_data_folder, input_data_file)
-        df = CSVDataUtils.read_csv_file(file_path)
+    # Step 5: Load feature configuration dataset
+    # Replace with your actual query
+    feature_config_query = "SELECT * FROM dbo.PD_Model_Features"
+    feature_config, _ = load_data(project_root, input_data_folder, feature_config_file,
+                                  use_database, global_config, query=feature_config_query)
 
-   # Step 5: Load feature configuration
-    feature_config = load_feature_config(
-        project_root, input_data_folder, feature_config_file, use_database, db_utils if use_database else None)
+    # Step 6: Print data samples
+    print_data_samples(df, feature_config)
 
-    # Step 6: Print a sample of the DataFrames
-    print("Sample of the main DataFrame:")
-    print(df.head())
-    print("\nSample of the feature configuration DataFrame:")
-    print(feature_config.head())
+    # Step 7: Perform EDA
+    perform_eda_Sweetviz(df, project_root, report_output_folder)
 
-    # Step 7: Close the database connection (if using database)
+    # Step 8: Close the database connection (if using database)
     if use_database:
         db_utils.close_connection()
 

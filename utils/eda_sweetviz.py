@@ -1,3 +1,5 @@
+# utils/eda_sweetviz.py
+
 from utils.save_utils import SaveUtils
 import sweetviz as sv
 import os
@@ -29,20 +31,29 @@ class SweetvizEDA:
         # Generate the Sweetviz report
         report = sv.analyze(self.data)
 
-        # Create a temporary HTML report in the same directory as output_file
-        output_dir = os.path.dirname(output_file)
-        temp_file = os.path.join(
-            output_dir, f"temp_{os.path.basename(output_file)}")
+        # Save the report directly to the output file
+        report.show_html(filepath=output_file, open_browser=True)
 
-        # Save the report as a temporary HTML file
-        report.show_html(temp_file)
+        # # Create a temporary HTML report in the same directory as output_file
+        # output_dir = os.path.dirname(output_file)
+        # temp_file = os.path.join(
+        #     output_dir, f"temp_{os.path.basename(output_file)}")
 
-        # Read the content from the temporary file and use SaveUtils to save it properly
-        try:
-            with open(temp_file, 'r', encoding='utf-8') as file:
-                html_content = file.read()
-            self.save_utils.save_html_report(
-                html_content, output_file, overwrite)
+        # # Save the report as a temporary HTML file
+        # report.show_html(temp_file)
 
-        except Exception as e:
-            print(f"Error while generating Sweetviz report: {e}")
+        # # Read the content from the temporary file and use SaveUtils to save it properly
+        # try:
+        #     with open(temp_file, 'r', encoding='utf-8') as file:
+        #         html_content = file.read()
+        #     self.save_utils.save_html_report(
+        #         html_content, output_file, overwrite)
+
+        # # Remove the temporary file after successful save
+        #     os.remove(temp_file)
+
+        # except Exception as e:
+        #     print(f"Error while generating Sweetviz report: {e}")
+        #     # Optionally, remove the temporary file if an error occurs
+        #     if os.path.exists(temp_file):
+        #         os.remove(temp_file)

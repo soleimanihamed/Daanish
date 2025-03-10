@@ -1,0 +1,13 @@
+[global]
+PYTHONPATH = /path/to/your/project
+# Replace /path/to/your/project with the absolute path to your Daanish project folder.
+# Example for Windows: C:\Data Science Projects\Daanish
+# Example for macOS/Linux: /Users/your-username/Data Science Projects/Daanish
+
+[DATABASE]
+server = your_database_server
+database = your_database_name
+username = your_username
+password = your_password
+use_database = False  # Set to True to use database, False to use CSV
+# Replace your_database_server, your_database_name, your_username, and your_password with your database credentials.

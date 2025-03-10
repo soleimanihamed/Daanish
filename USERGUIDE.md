@@ -2,13 +2,14 @@
 # User Guide: Setting Up `config.ini`
 
 This guide explains how to set up your `config.ini` file for the **Daanish** project.
+At the end, save the config.ini file in the root directory of your Daanish project.
 
 ---
 
 ## Create a `config.ini` File
 Create a `config.ini` file in the root of the project with the following content:
 
-```ini
+
 [global]
 PYTHONPATH = /path/to/your/project
 
@@ -22,6 +23,14 @@ Example for macOS/Linux:
 [global]
 PYTHONPATH = /Users/your-username/Data Science Projects/Daanish
 
+------------------------------------------------------------------
 
-## What is PYTHONPATH?
-The PYTHONPATH setting specifies the root directory of your project. This helps Python locate modules and packages within the Daanish project.
+[DATABASE]
+server = a\SQLEXPRESS
+database = ML
+username = Admin
+password = 123
+use_database = False  
+
+Replace your_database_server, your_database_name, your_username, and your_password with your database credentials.
+Set use_database to True if you want to use a database, or False to use CSV files.

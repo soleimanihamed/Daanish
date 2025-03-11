@@ -2,6 +2,7 @@
 from utils.config_utils import initialize_daanish,  load_project_config, get_database_config
 from utils.csv_data_utils import CSVDataUtils
 from utils.database_utils import DatabaseUtils
+from utils.eda_descriptive_analysis import DescriptiveEDAAnalysis
 from utils.eda_sweetviz import SweetvizEDA
 from utils.save_utils import SaveUtils
 import os
@@ -24,52 +25,18 @@ def load_project_configuration():
         'input_data_folder': project_config.get('paths', 'input_data_folder'),
         'output_data_folder': project_config.get('paths', 'output_data_folder'),
         'report_output_folder': project_config.get('paths', 'report_output_folder'),
-        'input_data_file': project_config.get('input_files', 'input_data_file'),
-        'feature_config_file': project_config.get('input_files', 'feature_config_file'),
         'use_database': project_config.getboolean('DATABASE', 'use_database', fallback=False)
     }
 
     return config
 
 
-def load_feature_config(project_root, input_data_folder, feature_config_file, use_database, db_utils=None):
-    """
-    Load feature configuration from a CSV file or database table.
-
-    Args:
-        project_root (str): Root directory of the project.
-        input_data_folder (str): Folder containing the feature configuration file.
-        feature_config_file (str): Name of the feature configuration file.
-        use_database (bool): Whether to use the database.
-        db_utils (DatabaseUtils): Database utility object (if using database).
-
-    Returns:
-        pd.DataFrame: Feature configuration as a DataFrame.
-    """
-    if use_database:
-        # Load feature configuration from the database
-        if db_utils is None:
-            raise ValueError(
-                "DatabaseUtils object is required when using the database.")
-        query = "SELECT * FROM dbo.PD_Model_Features"  # Replace with your table name
-        feature_config = db_utils.read_sql_query(query)
-    else:
-        # Load feature configuration from a CSV file
-        file_path = os.path.join(
-            project_root, input_data_folder, feature_config_file)
-        feature_config = CSVDataUtils.read_csv_file(file_path)
-
-    return feature_config
-
-
-def load_data(project_root, input_data_folder, input_data_file, use_database, global_config=None, query=None):
+def load_data(Input_Path, use_database, global_config=None, query=None):
     """
     Load a dataset from a CSV file or database.
 
     Args:
-        project_root (str): Root directory of the project.
-        input_data_folder (str): Folder containing the input data file.
-        input_data_file (str): Name of the input data file.
+        Input_Path (str): Complete path of the input file.
         use_database (bool): Whether to use the database.
         global_config (dict, optional): Global configuration containing database credentials.
         query (str, optional): SQL query to execute (if using database).
@@ -96,47 +63,41 @@ def load_data(project_root, input_data_folder, input_data_file, use_database, gl
         df = db_utils.read_sql_query(query)
     else:
         # Step 3: Load data from a CSV file
-        file_path = os.path.join(
-            project_root, input_data_folder, input_data_file)
-        df = CSVDataUtils.read_csv_file(file_path)
+        df = CSVDataUtils.read_csv_file(Input_Path)
 
     return df, db_utils
 
 
-def perform_eda_Sweetviz(df, project_root, report_output_folder):
-    """
-    Perform exploratory data analysis (EDA) using Sweetviz.
+def Construct_Input_Path(input_folder, file_name):
 
-    Args:
-        df (pd.DataFrame): The dataset to analyze.
-        report_output_folder (str): Folder to save the EDA report.
-        report_output_folder (str): Folder to save the EDA report (relative to project_root).
-    """
+    # Construct the full input path
+    project_root = os.path.dirname(__file__)
+
+    full_input_folder = os.path.join(
+        project_root, input_folder)
+
+    # Define the full path
+    full_report_path = os.path.join(
+        full_input_folder, file_name)
+
+    return full_report_path
+
+# Construct the full output path
+
+
+def Construct_Output_Path(output_folder, file_name):
 
     # Construct the full output path
+    project_root = os.path.dirname(__file__)
+
     full_report_output_folder = os.path.join(
-        project_root, report_output_folder)
+        project_root, output_folder)
 
-    # Define the full path for the Sweetviz report
-    sweetviz_report_path = os.path.join(
-        full_report_output_folder, 'raw_sweetviz_report.html')
+    # Define the full path
+    full_report_path = os.path.join(
+        full_report_output_folder, file_name)
 
-    eda_service = SweetvizEDA(df)
-    eda_service.generate_report(output_file=sweetviz_report_path)
-
-
-def print_data_samples(df, feature_config):
-    """
-    Print samples of the main DataFrame and feature configuration DataFrame.
-
-    Args:
-        df (pd.DataFrame): The main dataset.
-        feature_config (pd.DataFrame): The feature configuration dataset.
-    """
-    print("\nSample of the feature configuration DataFrame:")
-    print(feature_config.head())
-    print("Sample of the main DataFrame:")
-    print(df.head())
+    return full_report_path
 
 
 def main():
@@ -153,28 +114,32 @@ def main():
     input_data_folder = project_config['input_data_folder']
     output_data_folder = project_config['output_data_folder']
     report_output_folder = project_config['report_output_folder']
-    input_data_file = project_config['input_data_file']
-    feature_config_file = project_config['feature_config_file']
     use_database = project_config['use_database']
-
-    project_root = os.path.dirname(__file__)
 
     # Step 4: Load main dataset
     main_data_query = "SELECT * FROM dbo.loan"  # Replace with your actual query
-    df, db_utils = load_data(project_root, input_data_folder, input_data_file,
-                             use_database, global_config, query=main_data_query)
+    main_df, db_utils = load_data(Construct_Input_Path(input_data_folder, 'cr_raw_loan_data.csv'),
+                                  use_database, global_config, query=main_data_query)
 
     # Step 5: Load feature configuration dataset
     # Replace with your actual query
     feature_config_query = "SELECT * FROM dbo.PD_Model_Features"
-    feature_config, _ = load_data(project_root, input_data_folder, feature_config_file,
-                                  use_database, global_config, query=feature_config_query)
+    main_features, db_utils = load_data(Construct_Input_Path(input_data_folder, 'feature_config.csv'),
+                                        use_database, global_config, query=feature_config_query)
+    eda_service = DescriptiveEDAAnalysis(main_features)
+    eda_service.print_data_samples(main_features)
 
-    # Step 6: Print data samples
-    print_data_samples(df, feature_config)
+    # Step 6: Exploratory Data Analysis (EDA) - Descriptive Analysis for Raw Data
+    eda_service = DescriptiveEDAAnalysis(main_df)
+    eda_service.print_data_samples(main_df)
+    eda_service.save_summary_to_json(Construct_Output_Path(output_data_folder,
+                                                           'raw_custom_eda_report.json'))
+    eda_service.print_summary()
 
-    # Step 7: Perform EDA
-    perform_eda_Sweetviz(df, project_root, report_output_folder)
+    # Step 7: Exploratory Data Analysis (EDA) - with Sweetviz for Raw Data
+    # eda_service = SweetvizEDA(main_df)
+    # eda_service.generate_report(output_file=Construct_Output_Path(project_root, report_output_folder,
+    #                                                               'raw_sweetviz_report.html'))
 
     # Step 8: Close the database connection (if using database)
     if use_database:

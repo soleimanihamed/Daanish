@@ -1,12 +1,26 @@
-import pandas as pd
-import numpy as np
+# eda_descriptive_analysis.py
+
 from utils.save_utils import SaveUtils
+import json
+from tabulate import tabulate
 
 
 class DescriptiveEDAAnalysis:
     def __init__(self, data):
         self.data = data
         self.save_utils = SaveUtils()  # Initialize SaveUtils for saving reports
+
+    def print_data_samples(self, data):
+        """
+        Print samples of the DataFrame.
+
+        Args:
+            data: The dataset.
+
+        """
+
+        print("Sample of the DataFrame:")
+        print(data.head())
 
     def extended_describe(self, feature):
         """
@@ -92,3 +106,40 @@ class DescriptiveEDAAnalysis:
         """
         summary = self.generate_summary()
         self.save_utils.save_json(summary, output_file)
+
+    def print_summary(self, summary=None):
+        """
+        Prints the extended descriptive statistics in a well-formatted way.
+
+        Args:
+            summary (dict, optional): Dictionary containing the summary statistics. If None, generates the summary.
+        """
+        if summary is None:
+            summary = self.generate_summary()
+
+        for feature, stats in summary.items():
+            print(f"\nFeature: {feature}")
+            if isinstance(stats, dict):
+                # Print basic statistics in a table
+                basic_stats = {k: v for k,
+                               v in stats.items() if not isinstance(v, list)}
+                print(tabulate(basic_stats.items(), headers=[
+                    "Statistic", "Value"], tablefmt="pretty"))
+
+                # Print most_frequent values in a table
+                if "most_frequent" in stats:
+                    print("\nMost Frequent Values:")
+                    print(tabulate(stats["most_frequent"],
+                                   headers="keys", tablefmt="pretty"))
+
+                # Print largest_values in a table
+                if "largest_values" in stats:
+                    print("\nLargest Values:")
+                    print(tabulate(stats["largest_values"],
+                                   headers="keys", tablefmt="pretty"))
+
+                # Print smallest_values in a table
+                if "smallest_values" in stats:
+                    print("\nSmallest Values:")
+                    print(tabulate(stats["smallest_values"],
+                                   headers="keys", tablefmt="pretty"))

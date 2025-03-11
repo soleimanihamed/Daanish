@@ -1,0 +1,1920 @@
+{
+    "person_age": {
+        "count": 32581.0,
+        "mean": 27.73459992019889,
+        "std": 6.348078419225359,
+        "min": 20.0,
+        "25%": 23.0,
+        "50%": 26.0,
+        "75%": 30.0,
+        "max": 144.0,
+        "skewness": 2.5813925261849846,
+        "kurtosis": 18.560824765312866,
+        "5%": 22.0,
+        "95%": 40.0,
+        "missing_values": 0.0,
+        "missing_percentage": 0.0,
+        "distinct_count": 58.0,
+        "distinct_percentage": 0.17801786317178722,
+        "zero_values": 0.0,
+        "zero_percentage": 0.0,
+        "range": 124.0,
+        "iqr": 7.0,
+        "variance": 40.29809961663474,
+        "sum": 903621.0,
+        "most_frequent": [
+            {
+                "value": 23,
+                "count": 3889,
+                "percentage": 11.93640465301863
+            },
+            {
+                "value": 22,
+                "count": 3633,
+                "percentage": 11.150670636260397
+            },
+            {
+                "value": 24,
+                "count": 3549,
+                "percentage": 10.892851662011601
+            },
+            {
+                "value": 25,
+                "count": 3037,
+                "percentage": 9.321383628495134
+            },
+            {
+                "value": 26,
+                "count": 2477,
+                "percentage": 7.602590466836499
+            },
+            {
+                "value": 27,
+                "count": 2138,
+                "percentage": 6.562106749332433
+            },
+            {
+                "value": 28,
+                "count": 1854,
+                "percentage": 5.690433074491268
+            },
+            {
+                "value": 29,
+                "count": 1687,
+                "percentage": 5.177864399496639
+            },
+            {
+                "value": 30,
+                "count": 1316,
+                "percentage": 4.039163929897793
+            },
+            {
+                "value": 21,
+                "count": 1229,
+                "percentage": 3.772137135140112
+            },
+            {
+                "value": 31,
+                "count": 1142,
+                "percentage": 3.5051103403824313
+            },
+            {
+                "value": 32,
+                "count": 964,
+                "percentage": 2.958779656855222
+            },
+            {
+                "value": 33,
+                "count": 856,
+                "percentage": 2.627298118535343
+            },
+            {
+                "value": 34,
+                "count": 709,
+                "percentage": 2.176114913599951
+            },
+            {
+                "value": 35,
+                "count": 620,
+                "percentage": 1.9029495718363463
+            }
+        ],
+        "largest_values": [
+            {
+                "value": 144,
+                "count": 3,
+                "percentage": 0.009207820508885547
+            },
+            {
+                "value": 123,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 94,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 84,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 80,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 78,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 76,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 73,
+                "count": 3,
+                "percentage": 0.009207820508885547
+            },
+            {
+                "value": 70,
+                "count": 7,
+                "percentage": 0.021484914520732944
+            },
+            {
+                "value": 69,
+                "count": 5,
+                "percentage": 0.015346367514809243
+            },
+            {
+                "value": 67,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 66,
+                "count": 9,
+                "percentage": 0.02762346152665664
+            },
+            {
+                "value": 65,
+                "count": 9,
+                "percentage": 0.02762346152665664
+            },
+            {
+                "value": 64,
+                "count": 7,
+                "percentage": 0.021484914520732944
+            },
+            {
+                "value": 63,
+                "count": 3,
+                "percentage": 0.009207820508885547
+            }
+        ],
+        "smallest_values": [
+            {
+                "value": 20,
+                "count": 15,
+                "percentage": 0.04603910254442773
+            },
+            {
+                "value": 21,
+                "count": 1229,
+                "percentage": 3.772137135140112
+            },
+            {
+                "value": 22,
+                "count": 3633,
+                "percentage": 11.150670636260397
+            },
+            {
+                "value": 23,
+                "count": 3889,
+                "percentage": 11.93640465301863
+            },
+            {
+                "value": 24,
+                "count": 3549,
+                "percentage": 10.892851662011601
+            },
+            {
+                "value": 25,
+                "count": 3037,
+                "percentage": 9.321383628495134
+            },
+            {
+                "value": 26,
+                "count": 2477,
+                "percentage": 7.602590466836499
+            },
+            {
+                "value": 27,
+                "count": 2138,
+                "percentage": 6.562106749332433
+            },
+            {
+                "value": 28,
+                "count": 1854,
+                "percentage": 5.690433074491268
+            },
+            {
+                "value": 29,
+                "count": 1687,
+                "percentage": 5.177864399496639
+            },
+            {
+                "value": 30,
+                "count": 1316,
+                "percentage": 4.039163929897793
+            },
+            {
+                "value": 31,
+                "count": 1142,
+                "percentage": 3.5051103403824313
+            },
+            {
+                "value": 32,
+                "count": 964,
+                "percentage": 2.958779656855222
+            },
+            {
+                "value": 33,
+                "count": 856,
+                "percentage": 2.627298118535343
+            },
+            {
+                "value": 34,
+                "count": 709,
+                "percentage": 2.176114913599951
+            }
+        ]
+    },
+    "person_income": {
+        "count": 32581.0,
+        "mean": 66074.84846996715,
+        "std": 61983.11916815907,
+        "min": 4000.0,
+        "25%": 38500.0,
+        "50%": 55000.0,
+        "75%": 79200.0,
+        "max": 6000000.0,
+        "skewness": 32.865348833904434,
+        "kurtosis": 2693.272775674123,
+        "5%": 22880.0,
+        "95%": 138000.0,
+        "missing_values": 0.0,
+        "missing_percentage": 0.0,
+        "distinct_count": 4295.0,
+        "distinct_percentage": 13.18252969522114,
+        "zero_values": 0.0,
+        "zero_percentage": 0.0,
+        "range": 5996000.0,
+        "iqr": 40700.0,
+        "variance": 3841907061.8142085,
+        "sum": 2152784638.0,
+        "most_frequent": [
+            {
+                "value": 60000,
+                "count": 1046,
+                "percentage": 3.210460084098094
+            },
+            {
+                "value": 30000,
+                "count": 847,
+                "percentage": 2.599674657008686
+            },
+            {
+                "value": 50000,
+                "count": 778,
+                "percentage": 2.3878947853043186
+            },
+            {
+                "value": 40000,
+                "count": 658,
+                "percentage": 2.0195819649488964
+            },
+            {
+                "value": 45000,
+                "count": 590,
+                "percentage": 1.8108713667474907
+            },
+            {
+                "value": 75000,
+                "count": 579,
+                "percentage": 1.7771093582149105
+            },
+            {
+                "value": 48000,
+                "count": 532,
+                "percentage": 1.6328535035757037
+            },
+            {
+                "value": 65000,
+                "count": 532,
+                "percentage": 1.6328535035757037
+            },
+            {
+                "value": 70000,
+                "count": 527,
+                "percentage": 1.6175071360608944
+            },
+            {
+                "value": 42000,
+                "count": 524,
+                "percentage": 1.6082993155520087
+            },
+            {
+                "value": 36000,
+                "count": 518,
+                "percentage": 1.5898836745342377
+            },
+            {
+                "value": 55000,
+                "count": 471,
+                "percentage": 1.445627819895031
+            },
+            {
+                "value": 80000,
+                "count": 448,
+                "percentage": 1.3750345293269084
+            },
+            {
+                "value": 54000,
+                "count": 444,
+                "percentage": 1.3627574353150609
+            },
+            {
+                "value": 35000,
+                "count": 409,
+                "percentage": 1.2553328627113962
+            }
+        ],
+        "largest_values": [
+            {
+                "value": 6000000,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 2039784,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 1900000,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 1782000,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 1440000,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 1362000,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 1200000,
+                "count": 3,
+                "percentage": 0.009207820508885547
+            },
+            {
+                "value": 948000,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 900000,
+                "count": 4,
+                "percentage": 0.012277094011847395
+            },
+            {
+                "value": 889000,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 828000,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 800000,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 780000,
+                "count": 5,
+                "percentage": 0.015346367514809243
+            },
+            {
+                "value": 762000,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 750000,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            }
+        ],
+        "smallest_values": [
+            {
+                "value": 4000,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 4080,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 4200,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 4800,
+                "count": 3,
+                "percentage": 0.009207820508885547
+            },
+            {
+                "value": 4888,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 5000,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 5500,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 6000,
+                "count": 4,
+                "percentage": 0.012277094011847395
+            },
+            {
+                "value": 7000,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 7200,
+                "count": 3,
+                "percentage": 0.009207820508885547
+            },
+            {
+                "value": 7500,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 7800,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 7904,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 8000,
+                "count": 6,
+                "percentage": 0.018415641017771094
+            },
+            {
+                "value": 8004,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            }
+        ]
+    },
+    "person_home_ownership": {
+        "count": 32581,
+        "unique": 4,
+        "top": "RENT",
+        "freq": 16446,
+        "missing_values": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 4,
+        "values": 32581,
+        "categories": [
+            {
+                "category": "RENT",
+                "count": 16446,
+                "percentage": 50.47727202971056
+            },
+            {
+                "category": "MORTGAGE",
+                "count": 13444,
+                "percentage": 41.2633129738191
+            },
+            {
+                "category": "OWN",
+                "count": 2584,
+                "percentage": 7.931002731653418
+            },
+            {
+                "category": "OTHER",
+                "count": 107,
+                "percentage": 0.3284122648169179
+            }
+        ]
+    },
+    "person_emp_length": {
+        "count": 31686.0,
+        "mean": 4.789686296787225,
+        "std": 4.1426301488878625,
+        "min": 0.0,
+        "25%": 2.0,
+        "50%": 4.0,
+        "75%": 7.0,
+        "max": 123.0,
+        "skewness": 2.6144551214595424,
+        "kurtosis": 43.722338216746564,
+        "5%": 0.0,
+        "95%": 13.0,
+        "missing_values": 895.0,
+        "missing_percentage": 2.7469997851508547,
+        "distinct_count": 36.0,
+        "distinct_percentage": 0.11049384610662656,
+        "zero_values": 4105.0,
+        "zero_percentage": 12.59936772965839,
+        "range": 123.0,
+        "iqr": 5.0,
+        "variance": 17.161384550474676,
+        "sum": 151766.0,
+        "most_frequent": [
+            {
+                "value": 0.0,
+                "count": 4105,
+                "percentage": 12.59936772965839
+            },
+            {
+                "value": 2.0,
+                "count": 3849,
+                "percentage": 11.813633712900156
+            },
+            {
+                "value": 3.0,
+                "count": 3456,
+                "percentage": 10.60740922623615
+            },
+            {
+                "value": 5.0,
+                "count": 2946,
+                "percentage": 9.042079739725608
+            },
+            {
+                "value": 1.0,
+                "count": 2915,
+                "percentage": 8.94693226113379
+            },
+            {
+                "value": 4.0,
+                "count": 2874,
+                "percentage": 8.821092047512353
+            },
+            {
+                "value": 6.0,
+                "count": 2666,
+                "percentage": 8.182683158896289
+            },
+            {
+                "value": 7.0,
+                "count": 2196,
+                "percentage": 6.74012461250422
+            },
+            {
+                "value": 8.0,
+                "count": 1687,
+                "percentage": 5.177864399496639
+            },
+            {
+                "value": 9.0,
+                "count": 1367,
+                "percentage": 4.195696878548848
+            },
+            {
+                "value": 11.0,
+                "count": 740,
+                "percentage": 2.271262392191768
+            },
+            {
+                "value": 10.0,
+                "count": 696,
+                "percentage": 2.136214358061447
+            },
+            {
+                "value": 12.0,
+                "count": 575,
+                "percentage": 1.7648322642030632
+            },
+            {
+                "value": 13.0,
+                "count": 426,
+                "percentage": 1.3075105122617476
+            },
+            {
+                "value": 14.0,
+                "count": 335,
+                "percentage": 1.0282066234922194
+            }
+        ],
+        "largest_values": [
+            {
+                "value": 123.0,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 41.0,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 38.0,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 34.0,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 31.0,
+                "count": 4,
+                "percentage": 0.012277094011847395
+            },
+            {
+                "value": 30.0,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 29.0,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 28.0,
+                "count": 3,
+                "percentage": 0.009207820508885547
+            },
+            {
+                "value": 27.0,
+                "count": 5,
+                "percentage": 0.015346367514809243
+            },
+            {
+                "value": 26.0,
+                "count": 6,
+                "percentage": 0.018415641017771094
+            },
+            {
+                "value": 25.0,
+                "count": 8,
+                "percentage": 0.02455418802369479
+            },
+            {
+                "value": 24.0,
+                "count": 10,
+                "percentage": 0.030692735029618487
+            },
+            {
+                "value": 23.0,
+                "count": 10,
+                "percentage": 0.030692735029618487
+            },
+            {
+                "value": 22.0,
+                "count": 19,
+                "percentage": 0.05831619655627513
+            },
+            {
+                "value": 21.0,
+                "count": 38,
+                "percentage": 0.11663239311255026
+            }
+        ],
+        "smallest_values": [
+            {
+                "value": 0.0,
+                "count": 4105,
+                "percentage": 12.59936772965839
+            },
+            {
+                "value": 1.0,
+                "count": 2915,
+                "percentage": 8.94693226113379
+            },
+            {
+                "value": 2.0,
+                "count": 3849,
+                "percentage": 11.813633712900156
+            },
+            {
+                "value": 3.0,
+                "count": 3456,
+                "percentage": 10.60740922623615
+            },
+            {
+                "value": 4.0,
+                "count": 2874,
+                "percentage": 8.821092047512353
+            },
+            {
+                "value": 5.0,
+                "count": 2946,
+                "percentage": 9.042079739725608
+            },
+            {
+                "value": 6.0,
+                "count": 2666,
+                "percentage": 8.182683158896289
+            },
+            {
+                "value": 7.0,
+                "count": 2196,
+                "percentage": 6.74012461250422
+            },
+            {
+                "value": 8.0,
+                "count": 1687,
+                "percentage": 5.177864399496639
+            },
+            {
+                "value": 9.0,
+                "count": 1367,
+                "percentage": 4.195696878548848
+            },
+            {
+                "value": 10.0,
+                "count": 696,
+                "percentage": 2.136214358061447
+            },
+            {
+                "value": 11.0,
+                "count": 740,
+                "percentage": 2.271262392191768
+            },
+            {
+                "value": 12.0,
+                "count": 575,
+                "percentage": 1.7648322642030632
+            },
+            {
+                "value": 13.0,
+                "count": 426,
+                "percentage": 1.3075105122617476
+            },
+            {
+                "value": 14.0,
+                "count": 335,
+                "percentage": 1.0282066234922194
+            }
+        ]
+    },
+    "loan_intent": {
+        "count": 32581,
+        "unique": 6,
+        "top": "EDUCATION",
+        "freq": 6453,
+        "missing_values": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 6,
+        "values": 32581,
+        "categories": [
+            {
+                "category": "EDUCATION",
+                "count": 6453,
+                "percentage": 19.806021914612813
+            },
+            {
+                "category": "MEDICAL",
+                "count": 6071,
+                "percentage": 18.633559436481384
+            },
+            {
+                "category": "VENTURE",
+                "count": 5719,
+                "percentage": 17.553175163438812
+            },
+            {
+                "category": "PERSONAL",
+                "count": 5521,
+                "percentage": 16.945459009852367
+            },
+            {
+                "category": "DEBTCONSOLIDATION",
+                "count": 5212,
+                "percentage": 15.997053497437156
+            },
+            {
+                "category": "HOMEIMPROVEMENT",
+                "count": 3605,
+                "percentage": 11.064730978177465
+            }
+        ]
+    },
+    "loan_grade": {
+        "count": 32581,
+        "unique": 7,
+        "top": "A",
+        "freq": 10777,
+        "missing_values": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 7,
+        "values": 32581,
+        "categories": [
+            {
+                "category": "A",
+                "count": 10777,
+                "percentage": 33.07756054141985
+            },
+            {
+                "category": "B",
+                "count": 10451,
+                "percentage": 32.076977379454284
+            },
+            {
+                "category": "C",
+                "count": 6458,
+                "percentage": 19.821368282127622
+            },
+            {
+                "category": "D",
+                "count": 3626,
+                "percentage": 11.129185721739663
+            },
+            {
+                "category": "E",
+                "count": 964,
+                "percentage": 2.958779656855222
+            },
+            {
+                "category": "F",
+                "count": 241,
+                "percentage": 0.7396949142138055
+            },
+            {
+                "category": "G",
+                "count": 64,
+                "percentage": 0.19643350418955832
+            }
+        ]
+    },
+    "loan_amnt": {
+        "count": 32581.0,
+        "mean": 9589.371105859243,
+        "std": 6322.086645792259,
+        "min": 500.0,
+        "25%": 5000.0,
+        "50%": 8000.0,
+        "75%": 12200.0,
+        "max": 35000.0,
+        "skewness": 1.1924774277661998,
+        "kurtosis": 1.4235653072764443,
+        "5%": 2000.0,
+        "95%": 24000.0,
+        "missing_values": 0.0,
+        "missing_percentage": 0.0,
+        "distinct_count": 753.0,
+        "distinct_percentage": 2.3111629477302724,
+        "zero_values": 0.0,
+        "zero_percentage": 0.0,
+        "range": 34500.0,
+        "iqr": 7200.0,
+        "variance": 39968779.556904815,
+        "sum": 312431300.0,
+        "most_frequent": [
+            {
+                "value": 10000,
+                "count": 2664,
+                "percentage": 8.176544611890366
+            },
+            {
+                "value": 5000,
+                "count": 2043,
+                "percentage": 6.270525766551057
+            },
+            {
+                "value": 12000,
+                "count": 1809,
+                "percentage": 5.552315766857985
+            },
+            {
+                "value": 6000,
+                "count": 1801,
+                "percentage": 5.52776157883429
+            },
+            {
+                "value": 15000,
+                "count": 1502,
+                "percentage": 4.610048801448697
+            },
+            {
+                "value": 8000,
+                "count": 1445,
+                "percentage": 4.435100211779871
+            },
+            {
+                "value": 4000,
+                "count": 1066,
+                "percentage": 3.2718455541573306
+            },
+            {
+                "value": 3000,
+                "count": 1035,
+                "percentage": 3.1766980755655134
+            },
+            {
+                "value": 20000,
+                "count": 1016,
+                "percentage": 3.1183818790092386
+            },
+            {
+                "value": 7000,
+                "count": 993,
+                "percentage": 3.047788588441116
+            },
+            {
+                "value": 25000,
+                "count": 808,
+                "percentage": 2.4799729903931738
+            },
+            {
+                "value": 9000,
+                "count": 646,
+                "percentage": 1.9827506829133545
+            },
+            {
+                "value": 2000,
+                "count": 550,
+                "percentage": 1.688100426629017
+            },
+            {
+                "value": 7500,
+                "count": 530,
+                "percentage": 1.6267149565697798
+            },
+            {
+                "value": 16000,
+                "count": 490,
+                "percentage": 1.503944016451306
+            }
+        ],
+        "largest_values": [
+            {
+                "value": 35000,
+                "count": 185,
+                "percentage": 0.567815598047942
+            },
+            {
+                "value": 34800,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 34000,
+                "count": 4,
+                "percentage": 0.012277094011847395
+            },
+            {
+                "value": 33950,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 33250,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 33000,
+                "count": 6,
+                "percentage": 0.018415641017771094
+            },
+            {
+                "value": 32500,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 32400,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 32000,
+                "count": 10,
+                "percentage": 0.030692735029618487
+            },
+            {
+                "value": 31825,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 31400,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 31300,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 31050,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 31000,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 30750,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            }
+        ],
+        "smallest_values": [
+            {
+                "value": 500,
+                "count": 5,
+                "percentage": 0.015346367514809243
+            },
+            {
+                "value": 700,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 725,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 750,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 800,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 900,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 950,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 1000,
+                "count": 320,
+                "percentage": 0.9821675209477916
+            },
+            {
+                "value": 1050,
+                "count": 4,
+                "percentage": 0.012277094011847395
+            },
+            {
+                "value": 1075,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 1100,
+                "count": 3,
+                "percentage": 0.009207820508885547
+            },
+            {
+                "value": 1125,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 1150,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 1200,
+                "count": 141,
+                "percentage": 0.4327675639176207
+            },
+            {
+                "value": 1225,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            }
+        ]
+    },
+    "loan_int_rate": {
+        "count": 29465.0,
+        "mean": 11.011694834508658,
+        "std": 3.2404594759839247,
+        "min": 5.420000076293945,
+        "25%": 7.900000095367432,
+        "50%": 10.989999771118164,
+        "75%": 13.470000267028809,
+        "max": 23.219999313354492,
+        "skewness": 0.208550355322592,
+        "kurtosis": -0.6716090778773895,
+        "5%": 6.03000020980835,
+        "95%": 16.31999969482422,
+        "missing_values": 3116.0,
+        "missing_percentage": 9.563856235229121,
+        "distinct_count": 348.0,
+        "distinct_percentage": 1.0681071790307235,
+        "zero_values": 0.0,
+        "zero_percentage": 0.0,
+        "range": 17.799999237060547,
+        "iqr": 5.570000171661377,
+        "variance": 10.500577615494013,
+        "sum": 324459.5882987976,
+        "most_frequent": [
+            {
+                "value": 7.510000228881836,
+                "count": 756,
+                "percentage": 2.3203707682391577
+            },
+            {
+                "value": 10.989999771118164,
+                "count": 749,
+                "percentage": 2.298885853718425
+            },
+            {
+                "value": 7.489999771118164,
+                "count": 645,
+                "percentage": 1.9796814094103925
+            },
+            {
+                "value": 7.880000114440918,
+                "count": 642,
+                "percentage": 1.970473588901507
+            },
+            {
+                "value": 5.420000076293945,
+                "count": 594,
+                "percentage": 1.823148460759338
+            },
+            {
+                "value": 7.900000095367432,
+                "count": 573,
+                "percentage": 1.7586937171971395
+            },
+            {
+                "value": 11.489999771118164,
+                "count": 488,
+                "percentage": 1.4978054694453824
+            },
+            {
+                "value": 9.989999771118164,
+                "count": 463,
+                "percentage": 1.4210736318713362
+            },
+            {
+                "value": 13.489999771118164,
+                "count": 454,
+                "percentage": 1.3934501703446793
+            },
+            {
+                "value": 6.03000020980835,
+                "count": 448,
+                "percentage": 1.3750345293269084
+            },
+            {
+                "value": 11.710000038146973,
+                "count": 418,
+                "percentage": 1.2829563242380528
+            },
+            {
+                "value": 8.489999771118164,
+                "count": 415,
+                "percentage": 1.2737485037291674
+            },
+            {
+                "value": 6.619999885559082,
+                "count": 414,
+                "percentage": 1.2706792302262055
+            },
+            {
+                "value": 5.789999961853027,
+                "count": 395,
+                "percentage": 1.2123630336699303
+            },
+            {
+                "value": 7.289999961853027,
+                "count": 381,
+                "percentage": 1.1693932046284645
+            }
+        ],
+        "largest_values": [
+            {
+                "value": 23.219999313354492,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 22.479999542236328,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 22.110000610351562,
+                "count": 3,
+                "percentage": 0.009207820508885547
+            },
+            {
+                "value": 22.059999465942383,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 21.739999771118164,
+                "count": 5,
+                "percentage": 0.015346367514809243
+            },
+            {
+                "value": 21.639999389648438,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 21.360000610351562,
+                "count": 5,
+                "percentage": 0.015346367514809243
+            },
+            {
+                "value": 21.270000457763672,
+                "count": 3,
+                "percentage": 0.009207820508885547
+            },
+            {
+                "value": 21.209999084472656,
+                "count": 4,
+                "percentage": 0.012277094011847395
+            },
+            {
+                "value": 21.139999389648438,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 20.989999771118164,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 20.899999618530273,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 20.889999389648438,
+                "count": 7,
+                "percentage": 0.021484914520732944
+            },
+            {
+                "value": 20.860000610351562,
+                "count": 3,
+                "percentage": 0.009207820508885547
+            },
+            {
+                "value": 20.690000534057617,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            }
+        ],
+        "smallest_values": [
+            {
+                "value": 5.420000076293945,
+                "count": 594,
+                "percentage": 1.823148460759338
+            },
+            {
+                "value": 5.789999961853027,
+                "count": 395,
+                "percentage": 1.2123630336699303
+            },
+            {
+                "value": 5.989999771118164,
+                "count": 358,
+                "percentage": 1.098799914060342
+            },
+            {
+                "value": 6.0,
+                "count": 12,
+                "percentage": 0.03683128203554219
+            },
+            {
+                "value": 6.03000020980835,
+                "count": 448,
+                "percentage": 1.3750345293269084
+            },
+            {
+                "value": 6.170000076293945,
+                "count": 214,
+                "percentage": 0.6568245296338358
+            },
+            {
+                "value": 6.389999866485596,
+                "count": 63,
+                "percentage": 0.1933642306865965
+            },
+            {
+                "value": 6.539999961853027,
+                "count": 250,
+                "percentage": 0.7673183757404622
+            },
+            {
+                "value": 6.619999885559082,
+                "count": 414,
+                "percentage": 1.2706792302262055
+            },
+            {
+                "value": 6.760000228881836,
+                "count": 179,
+                "percentage": 0.549399957030171
+            },
+            {
+                "value": 6.909999847412109,
+                "count": 266,
+                "percentage": 0.8164267517878518
+            },
+            {
+                "value": 6.920000076293945,
+                "count": 206,
+                "percentage": 0.6322703416101408
+            },
+            {
+                "value": 6.989999771118164,
+                "count": 340,
+                "percentage": 1.0435529910070287
+            },
+            {
+                "value": 7.050000190734863,
+                "count": 19,
+                "percentage": 0.05831619655627513
+            },
+            {
+                "value": 7.119999885559082,
+                "count": 8,
+                "percentage": 0.02455418802369479
+            }
+        ]
+    },
+    "loan_status": {
+        "count": 32581,
+        "unique": 2,
+        "top": false,
+        "freq": 25473
+    },
+    "loan_percent_income": {
+        "count": 32572.0,
+        "mean": 0.17025052203070434,
+        "std": 0.10675901467069454,
+        "min": 0.009999999776482582,
+        "25%": 0.09000000357627869,
+        "50%": 0.15000000596046448,
+        "75%": 0.23000000417232513,
+        "max": 0.8299999833106995,
+        "skewness": 1.0654416771611428,
+        "kurtosis": 1.2247909141204727,
+        "5%": 0.03999999910593033,
+        "95%": 0.3799999952316284,
+        "missing_values": 9.0,
+        "missing_percentage": 0.02762346152665664,
+        "distinct_count": 76.0,
+        "distinct_percentage": 0.23326478622510052,
+        "zero_values": 0.0,
+        "zero_percentage": 0.0,
+        "range": 0.8199999835342169,
+        "iqr": 0.14000000059604645,
+        "variance": 0.011397487213457572,
+        "sum": 5545.400003584102,
+        "most_frequent": [
+            {
+                "value": 0.10000000149011612,
+                "count": 1533,
+                "percentage": 4.705196280040514
+            },
+            {
+                "value": 0.12999999523162842,
+                "count": 1482,
+                "percentage": 4.54866333138946
+            },
+            {
+                "value": 0.07999999821186066,
+                "count": 1437,
+                "percentage": 4.410546023756177
+            },
+            {
+                "value": 0.07000000029802322,
+                "count": 1394,
+                "percentage": 4.278567263128817
+            },
+            {
+                "value": 0.10999999940395355,
+                "count": 1381,
+                "percentage": 4.238666707590314
+            },
+            {
+                "value": 0.09000000357627869,
+                "count": 1379,
+                "percentage": 4.23252816058439
+            },
+            {
+                "value": 0.14000000059604645,
+                "count": 1294,
+                "percentage": 3.9716399128326327
+            },
+            {
+                "value": 0.11999999731779099,
+                "count": 1293,
+                "percentage": 3.9685706393296707
+            },
+            {
+                "value": 0.05999999865889549,
+                "count": 1289,
+                "percentage": 3.956293545317823
+            },
+            {
+                "value": 0.17000000178813934,
+                "count": 1259,
+                "percentage": 3.864215340228968
+            },
+            {
+                "value": 0.15000000596046448,
+                "count": 1256,
+                "percentage": 3.855007519720082
+            },
+            {
+                "value": 0.05000000074505806,
+                "count": 1178,
+                "percentage": 3.6156041864890582
+            },
+            {
+                "value": 0.1599999964237213,
+                "count": 1088,
+                "percentage": 3.339369571222492
+            },
+            {
+                "value": 0.20000000298023224,
+                "count": 1071,
+                "percentage": 3.2871919216721404
+            },
+            {
+                "value": 0.1899999976158142,
+                "count": 978,
+                "percentage": 3.0017494858966884
+            }
+        ],
+        "largest_values": [
+            {
+                "value": 0.8299999833106995,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 0.7799999713897705,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 0.7699999809265137,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 0.7599999904632568,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 0.7200000286102295,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            },
+            {
+                "value": 0.7099999785423279,
+                "count": 3,
+                "percentage": 0.009207820508885547
+            },
+            {
+                "value": 0.699999988079071,
+                "count": 3,
+                "percentage": 0.009207820508885547
+            },
+            {
+                "value": 0.6899999976158142,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 0.6800000071525574,
+                "count": 3,
+                "percentage": 0.009207820508885547
+            },
+            {
+                "value": 0.6700000166893005,
+                "count": 4,
+                "percentage": 0.012277094011847395
+            },
+            {
+                "value": 0.6600000262260437,
+                "count": 2,
+                "percentage": 0.006138547005923698
+            },
+            {
+                "value": 0.6499999761581421,
+                "count": 4,
+                "percentage": 0.012277094011847395
+            },
+            {
+                "value": 0.6399999856948853,
+                "count": 5,
+                "percentage": 0.015346367514809243
+            },
+            {
+                "value": 0.6299999952316284,
+                "count": 13,
+                "percentage": 0.03990055553850404
+            },
+            {
+                "value": 0.6200000047683716,
+                "count": 1,
+                "percentage": 0.003069273502961849
+            }
+        ],
+        "smallest_values": [
+            {
+                "value": 0.009999999776482582,
+                "count": 139,
+                "percentage": 0.426629016911697
+            },
+            {
+                "value": 0.019999999552965164,
+                "count": 370,
+                "percentage": 1.135631196095884
+            },
+            {
+                "value": 0.029999999329447746,
+                "count": 780,
+                "percentage": 2.3940333323102423
+            },
+            {
+                "value": 0.03999999910593033,
+                "count": 976,
+                "percentage": 2.995610938890765
+            },
+            {
+                "value": 0.05000000074505806,
+                "count": 1178,
+                "percentage": 3.6156041864890582
+            },
+            {
+                "value": 0.05999999865889549,
+                "count": 1289,
+                "percentage": 3.956293545317823
+            },
+            {
+                "value": 0.07000000029802322,
+                "count": 1394,
+                "percentage": 4.278567263128817
+            },
+            {
+                "value": 0.07999999821186066,
+                "count": 1437,
+                "percentage": 4.410546023756177
+            },
+            {
+                "value": 0.09000000357627869,
+                "count": 1379,
+                "percentage": 4.23252816058439
+            },
+            {
+                "value": 0.10000000149011612,
+                "count": 1533,
+                "percentage": 4.705196280040514
+            },
+            {
+                "value": 0.10999999940395355,
+                "count": 1381,
+                "percentage": 4.238666707590314
+            },
+            {
+                "value": 0.11999999731779099,
+                "count": 1293,
+                "percentage": 3.9685706393296707
+            },
+            {
+                "value": 0.12999999523162842,
+                "count": 1482,
+                "percentage": 4.54866333138946
+            },
+            {
+                "value": 0.14000000059604645,
+                "count": 1294,
+                "percentage": 3.9716399128326327
+            },
+            {
+                "value": 0.15000000596046448,
+                "count": 1256,
+                "percentage": 3.855007519720082
+            }
+        ]
+    },
+    "cb_person_default_on_file": {
+        "count": 32581,
+        "unique": 2,
+        "top": false,
+        "freq": 26836
+    },
+    "cb_person_cred_hist_length": {
+        "count": 32581.0,
+        "mean": 5.804211043246064,
+        "std": 4.055001164712727,
+        "min": 2.0,
+        "25%": 3.0,
+        "50%": 4.0,
+        "75%": 8.0,
+        "max": 30.0,
+        "skewness": 1.6617901199126253,
+        "kurtosis": 3.7161938192947908,
+        "5%": 2.0,
+        "95%": 14.0,
+        "missing_values": 0.0,
+        "missing_percentage": 0.0,
+        "distinct_count": 29.0,
+        "distinct_percentage": 0.08900893158589361,
+        "zero_values": 0.0,
+        "zero_percentage": 0.0,
+        "range": 28.0,
+        "iqr": 5.0,
+        "variance": 16.44303444582157,
+        "sum": 189107.0,
+        "most_frequent": [
+            {
+                "value": 2,
+                "count": 5965,
+                "percentage": 18.30821644516743
+            },
+            {
+                "value": 3,
+                "count": 5943,
+                "percentage": 18.240692428102268
+            },
+            {
+                "value": 4,
+                "count": 5925,
+                "percentage": 18.185445505048957
+            },
+            {
+                "value": 8,
+                "count": 1902,
+                "percentage": 5.837758202633437
+            },
+            {
+                "value": 7,
+                "count": 1901,
+                "percentage": 5.834688929130475
+            },
+            {
+                "value": 9,
+                "count": 1895,
+                "percentage": 5.816273288112703
+            },
+            {
+                "value": 5,
+                "count": 1881,
+                "percentage": 5.773303459071237
+            },
+            {
+                "value": 6,
+                "count": 1857,
+                "percentage": 5.699640895000154
+            },
+            {
+                "value": 10,
+                "count": 1850,
+                "percentage": 5.678155980479421
+            },
+            {
+                "value": 14,
+                "count": 492,
+                "percentage": 1.5100825634572297
+            },
+            {
+                "value": 12,
+                "count": 485,
+                "percentage": 1.4885976489364967
+            },
+            {
+                "value": 11,
+                "count": 463,
+                "percentage": 1.4210736318713362
+            },
+            {
+                "value": 16,
+                "count": 451,
+                "percentage": 1.3842423498357939
+            },
+            {
+                "value": 13,
+                "count": 443,
+                "percentage": 1.359688161812099
+            },
+            {
+                "value": 15,
+                "count": 437,
+                "percentage": 1.341272520794328
+            }
+        ],
+        "largest_values": [
+            {
+                "value": 30,
+                "count": 22,
+                "percentage": 0.06752401706516067
+            },
+            {
+                "value": 29,
+                "count": 14,
+                "percentage": 0.04296982904146589
+            },
+            {
+                "value": 28,
+                "count": 27,
+                "percentage": 0.08287038457996992
+            },
+            {
+                "value": 27,
+                "count": 22,
+                "percentage": 0.06752401706516067
+            },
+            {
+                "value": 26,
+                "count": 16,
+                "percentage": 0.04910837604738958
+            },
+            {
+                "value": 25,
+                "count": 18,
+                "percentage": 0.05524692305331328
+            },
+            {
+                "value": 24,
+                "count": 30,
+                "percentage": 0.09207820508885546
+            },
+            {
+                "value": 23,
+                "count": 22,
+                "percentage": 0.06752401706516067
+            },
+            {
+                "value": 22,
+                "count": 22,
+                "percentage": 0.06752401706516067
+            },
+            {
+                "value": 21,
+                "count": 20,
+                "percentage": 0.061385470059236974
+            },
+            {
+                "value": 20,
+                "count": 31,
+                "percentage": 0.09514747859181732
+            },
+            {
+                "value": 19,
+                "count": 21,
+                "percentage": 0.06445474356219882
+            },
+            {
+                "value": 18,
+                "count": 19,
+                "percentage": 0.05831619655627513
+            },
+            {
+                "value": 17,
+                "count": 407,
+                "percentage": 1.2491943157054726
+            },
+            {
+                "value": 16,
+                "count": 451,
+                "percentage": 1.3842423498357939
+            }
+        ],
+        "smallest_values": [
+            {
+                "value": 2,
+                "count": 5965,
+                "percentage": 18.30821644516743
+            },
+            {
+                "value": 3,
+                "count": 5943,
+                "percentage": 18.240692428102268
+            },
+            {
+                "value": 4,
+                "count": 5925,
+                "percentage": 18.185445505048957
+            },
+            {
+                "value": 5,
+                "count": 1881,
+                "percentage": 5.773303459071237
+            },
+            {
+                "value": 6,
+                "count": 1857,
+                "percentage": 5.699640895000154
+            },
+            {
+                "value": 7,
+                "count": 1901,
+                "percentage": 5.834688929130475
+            },
+            {
+                "value": 8,
+                "count": 1902,
+                "percentage": 5.837758202633437
+            },
+            {
+                "value": 9,
+                "count": 1895,
+                "percentage": 5.816273288112703
+            },
+            {
+                "value": 10,
+                "count": 1850,
+                "percentage": 5.678155980479421
+            },
+            {
+                "value": 11,
+                "count": 463,
+                "percentage": 1.4210736318713362
+            },
+            {
+                "value": 12,
+                "count": 485,
+                "percentage": 1.4885976489364967
+            },
+            {
+                "value": 13,
+                "count": 443,
+                "percentage": 1.359688161812099
+            },
+            {
+                "value": 14,
+                "count": 492,
+                "percentage": 1.5100825634572297
+            },
+            {
+                "value": 15,
+                "count": 437,
+                "percentage": 1.341272520794328
+            },
+            {
+                "value": 16,
+                "count": 451,
+                "percentage": 1.3842423498357939
+            }
+        ]
+    }
+}

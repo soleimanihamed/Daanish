@@ -131,10 +131,13 @@ def main():
 
     # Step 6: Exploratory Data Analysis (EDA) - Descriptive Analysis for Raw Data
     eda_service = DescriptiveEDAAnalysis(main_df)
-    eda_service.print_data_samples(main_df)
+    eda_service.print_data_samples(main_df, 10)
     eda_service.save_summary_to_json(Construct_Output_Path(output_data_folder,
-                                                           'raw_custom_eda_report.json'))
-    eda_service.print_summary()
+                                                           'main_detailed_EDA.json'))
+    # eda_service.print_detailed_summary()
+    # eda_service.print_high_level_summary()
+    eda_service.save_high_level_summary_to_csv(Construct_Output_Path(output_data_folder,
+                                                                     'main_EDA.csv'))
 
     # Step 7: Exploratory Data Analysis (EDA) - with Sweetviz for Raw Data
     # eda_service = SweetvizEDA(main_df)

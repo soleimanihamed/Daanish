@@ -68,6 +68,7 @@ def load_data(Input_Path, use_database, global_config=None, query=None):
     return df, db_utils
 
 
+# Construct the full input path
 def Construct_Input_Path(input_folder, file_name):
 
     # Construct the full input path
@@ -82,9 +83,8 @@ def Construct_Input_Path(input_folder, file_name):
 
     return full_report_path
 
+
 # Construct the full output path
-
-
 def Construct_Output_Path(output_folder, file_name):
 
     # Construct the full output path
@@ -129,17 +129,28 @@ def main():
     eda_service = DescriptiveEDAAnalysis(main_features)
     eda_service.print_data_samples(main_features)
 
-    # Step 6: Exploratory Data Analysis (EDA) - Descriptive Analysis for Raw Data
+    # Step 6_1: Exploratory Data Analysis (EDA) - Descriptive Analysis for Raw Data
     eda_service = DescriptiveEDAAnalysis(main_df)
     eda_service.print_data_samples(main_df, 10)
     eda_service.save_summary_to_json(Construct_Output_Path(output_data_folder,
                                                            'main_detailed_EDA.json'))
     # eda_service.print_detailed_summary()
     # eda_service.print_high_level_summary()
+    eda_service.dataset_summary()
     eda_service.save_high_level_summary_to_csv(Construct_Output_Path(output_data_folder,
                                                                      'main_EDA.csv'))
 
-    # Step 7: Exploratory Data Analysis (EDA) - with Sweetviz for Raw Data
+    # Analyze probability distributions for specific numeric variables
+    numeric_variables = main_features[main_features['type']
+                                      == 'numerical']['feature'].tolist()
+
+    # Opionally the method variable can be passed to determine the method for finding the best fit
+    # THis method accepts these values: 'sumsquare_error','aic' or 'bic'
+    # By default it is set to 'sumsquare_error'
+    distribution_results = eda_service.fit_best_distribution(
+        numeric_variables, method='sumsquare_error', common_distributions=True, timeout=120)
+
+    # Step 6_2: Exploratory Data Analysis (EDA) - with Sweetviz for Raw Data
     # eda_service = SweetvizEDA(main_df)
     # eda_service.generate_report(output_file=Construct_Output_Path(project_root, report_output_folder,
     #                                                               'raw_sweetviz_report.html'))

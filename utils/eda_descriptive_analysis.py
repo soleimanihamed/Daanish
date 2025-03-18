@@ -1,14 +1,49 @@
 # eda_descriptive_analysis.py
-
 from utils.save_utils import SaveUtils
 from tabulate import tabulate
 import pandas as pd
+import numpy as np
+from fitter import Fitter
 
 
 class DescriptiveEDAAnalysis:
     def __init__(self, data):
         self.data = data
         self.save_utils = SaveUtils()  # Initialize SaveUtils for saving reports
+
+    def dataset_summary(self):
+        """
+        Provides a summary of the dataset, including:
+        - Basic info (columns, non-null counts, data types)
+        - Number of duplicate records
+        - Missing values (count and percentage)
+        - Number of duplicate records
+        - Unique values per column
+        """
+
+        # Print basic info (columns, non-null counts, data types)
+        print("=== Dataset Information ===")
+        self.data.info()
+
+        # Add number of duplicate records
+        duplicate_count = self.data.duplicated().sum()
+        print(f"\nNumber of duplicate records: {duplicate_count}")
+
+        # Print Missing values (Count,Percentage)
+        print("\n=== Missing Values ===")
+        missing_values = self.data.isnull().sum()
+        missing_percentage = (missing_values / len(self.data)) * 100
+        missing_info = pd.concat([missing_values, missing_percentage], axis=1, keys=[
+                                 "Count", "Percentage"])
+        print(missing_info.to_string(
+            formatters={"Percentage": "{:.2f}%".format}))
+
+        # Print Unique values
+        print("\n=== Unique Values ===")
+        unique_values = self.data.nunique()
+        unique_info = pd.DataFrame(
+            {"Column": unique_values.index, "Unique Values": unique_values.values})
+        print(unique_info.to_string(index=False))
 
     def print_data_samples(self, data, sample_number=5):
         """
@@ -82,6 +117,19 @@ class DescriptiveEDAAnalysis:
                 'count': count,
                 'percentage': (count / len(feature_data)) * 100
             } for index, count in value_counts.items()]
+
+        # Additional statistics for boolean features
+        elif feature_data.dtype == 'bool':
+            # Convert boolean to int for numerical calculations
+            feature_data = feature_data.astype(int)
+            summary['missing_values'] = feature_data.isna().sum()
+            summary['missing_percentage'] = feature_data.isna().mean() * 100
+            summary['distinct_count'] = feature_data.nunique()
+
+            # Most frequent value
+            summary['mode'] = feature_data.mode().iloc[0]
+            summary['mode_percentage'] = (
+                feature_data == summary['mode']).mean() * 100
 
         return summary
 
@@ -216,3 +264,98 @@ class DescriptiveEDAAnalysis:
         df_summary.to_csv(output_file, index=True)
 
         print(f"High-level summary saved to {output_file}")
+
+    def fit_best_distribution(self, numeric_variables: list, method='sumsquare_error', common_distributions=True, timeout=60):
+        """
+        Fits the best probability distribution for each numeric variable in the input list.
+
+        Parameters:
+            numeric_variables (list): List of column names to analyze.
+            method (str): Method to find the best fit ('sumsquare_error', 'aic', 'bic').
+            common_distributions (bool): If True, uses only common distributions to avoid long runtime.
+            timeout (int): Timeout for fitting each distribution (in seconds).
+
+        Returns:
+            dict: A dictionary containing the best-fitting distribution and its parameters for each variable.
+        """
+
+        # Dictionary to store results
+        results = {}
+
+        # Common distributions (to avoid very slow ones)
+        common_dists = [
+            'norm', 'expon', 'lognorm', 'gamma', 'beta', 'weibull_min', 'chi2', 'pareto',
+            'uniform', 't', 'gumbel_r', 'burr', 'invgauss', 'triang', 'laplace', 'logistic',
+            'genextreme', 'skewnorm', 'genpareto', 'burr12', 'fatiguelife', 'geninvgauss',
+            'halfnorm', 'exponpow'
+        ]
+
+        # Iterate over the input variables
+        for variable in numeric_variables:
+            # Check if the variable is numeric
+            if pd.api.types.is_numeric_dtype(self.data[variable]):
+                print(f"\n=== Analyzing {variable} ===")
+
+                # Drop missing values
+                data = self.data[variable].dropna()
+
+                # Select distributions based on user choice
+                distributions = common_dists if common_distributions else None
+
+                # Initialize Fitter
+                fitter = Fitter(
+                    data, distributions=distributions, timeout=timeout)
+
+                try:
+                    # Fit the distributions
+                    fitter.fit()
+
+                    # Get the best-fitting distribution
+                    # You can also use 'aic' or 'bic'
+                    best_fit = fitter.get_best(method)
+
+                # Check if a best fit was found
+                    if best_fit:
+                        # Store results
+                        results[variable] = {
+                            # Get the name of the best-fitting distribution
+                            "best_distribution": list(best_fit.keys())[0],
+                            # Get the parameters of the best-fitting distribution
+                            "parameters": list(best_fit.values())[0]
+                        }
+
+                        # Print results
+                        print(
+                            f"Best-fitting distribution: {list(best_fit.keys())[0]}")
+                        print(f"Parameters: {list(best_fit.values())[0]}")
+                    else:
+                        results[variable] = {
+                            "best_distribution": None,
+                            "parameters": None
+                        }
+                        print(
+                            f"No suitable distribution found for {variable}.")
+                except Exception as e:
+                    print(f"Error fitting distributions for {variable}: {e}")
+                    results[variable] = {
+                        "best_distribution": None, "parameters": None}
+
+            else:
+                print(f"\n=== Skipping {variable} (not numeric) ===")
+
+        # Convert results dictionary to a well-structured DataFrame
+        if results:
+            results_df = pd.DataFrame([
+                {"Feature": feature, "Best Distribution":
+                    data["best_distribution"], "Parameters": data["parameters"]}
+                for feature, data in results.items()
+            ])
+
+            # Print formatted results
+            print("\n=== Distribution Fitting Results ===")
+            # Removes default index for clarity
+            print(results_df.to_string(index=False))
+        else:
+            print("No valid distributions were found for the provided numeric variables.")
+
+        return results

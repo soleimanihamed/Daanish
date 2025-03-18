@@ -1399,7 +1399,12 @@
         "count": 32581,
         "unique": 2,
         "top": false,
-        "freq": 25473
+        "freq": 25473,
+        "missing_values": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 2,
+        "mode": 0,
+        "mode_percentage": 78.18360394094718
     },
     "loan_percent_income": {
         "count": 32572.0,
@@ -1660,7 +1665,12 @@
         "count": 32581,
         "unique": 2,
         "top": false,
-        "freq": 26836
+        "freq": 26836,
+        "missing_values": 0,
+        "missing_percentage": 0.0,
+        "distinct_count": 2,
+        "mode": 0,
+        "mode_percentage": 82.36702372548417
     },
     "cb_person_cred_hist_length": {
         "count": 32581.0,

@@ -1,7 +1,5 @@
 import pandas as pd
-# Importing DataUtils for reading feature configurations
 from utils.csv_data_utils import DataUtils
-# Importing DatabaseUtils for reading from SQL
 from utils.database_utils import DatabaseUtils
 
 

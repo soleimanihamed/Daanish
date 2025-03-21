@@ -9,6 +9,8 @@ import os
 from configparser import ConfigParser
 import pandas as pd
 from utils.visualisation import Visualisation
+from utils.feature_manager import FeatureManager
+from utils.main_dataset_manager import MainDatasetManager
 
 
 def load_project_configuration():
@@ -28,47 +30,12 @@ def load_project_configuration():
         'report_output_folder': project_config.get('paths', 'report_output_folder'),
         'main_dataset': project_config.get('input_files', 'main_dataset'),
         'features_attributes': project_config.get('input_files', 'features_attributes'),
-        'use_database': project_config.getboolean('DATABASE', 'use_database', fallback=False)
+        'source_type': project_config.get('datasource_type', 'source_type'),
+        'model_features_query': project_config.get('db_queries', 'model_features_query'),
+        'main_dataset_query': project_config.get('db_queries', 'main_dataset_query')
     }
 
     return config
-
-
-def load_data(Input_Path, use_database, global_config=None, query=None):
-    """
-    Load a dataset from a CSV file or database.
-
-    Args:
-        Input_Path (str): Complete path of the input file.
-        use_database (bool): Whether to use the database.
-        global_config (dict, optional): Global configuration containing database credentials.
-        query (str, optional): SQL query to execute (if using database).
-
-    Returns:
-        pd.DataFrame: The dataset as a DataFrame.
-        DatabaseUtils: The database utility object (if using database).
-    """
-    db_utils = None
-    if use_database:
-        if global_config is None:
-            raise ValueError(
-                "Global configuration is required when using the database.")
-        if query is None:
-            raise ValueError("Query is required when using the database.")
-
-        # Step 1: Get database configuration and connect
-        db_config = get_database_config(global_config)
-        db_utils = DatabaseUtils(
-            db_config['server'], db_config['database'], db_config['username'], db_config['password'])
-        db_utils.connect()
-
-        # Step 2: Load data from the database
-        df = db_utils.read_sql_query(query)
-    else:
-        # Step 3: Load data from a CSV file
-        df = CSVDataUtils.read_csv_file(Input_Path)
-
-    return df, db_utils
 
 
 # Construct the full input path
@@ -121,26 +88,48 @@ def main():
     input_data_folder = project_config['input_data_folder']
     output_data_folder = project_config['output_data_folder']
     report_output_folder = project_config['report_output_folder']
-    use_database = project_config['use_database']
+    main_dataset = project_config['main_dataset']
+    model_features = project_config['features_attributes']
+    source_type = project_config['source_type']
+    model_features_query = project_config['model_features_query']
+    main_dataset_query = project_config['main_dataset_query']
 
     # ----------------------------------------------------------------------------------
 
     # Step 4: Load main dataset
-    main_data_query = "SELECT * FROM dbo.loan"  # Replace with your actual query
-    dataset_file = project_config['main_dataset']
-    main_df, db_utils = load_data(Construct_Input_Path(input_data_folder, dataset_file),
-                                  use_database, global_config, query=main_data_query)
+
+    dataset_manager = MainDatasetManager(
+        source_type=source_type,
+        source_path=Construct_Input_Path(input_data_folder, main_dataset),
+        global_config=global_config,
+        query=main_dataset_query
+    )
+
+    # Get the dataset
+    main_df = dataset_manager.get_data()
 
     # ----------------------------------------------------------------------------------
 
-    # Step 5: Load feature configuration dataset
-    # Replace with your actual query
-    feature_config_query = "SELECT * FROM dbo.PD_Model_Features"
-    model_features = project_config['features_attributes']
-    main_features, db_utils = load_data(Construct_Input_Path(input_data_folder, model_features),
-                                        use_database, global_config, query=feature_config_query)
-    eda_service = DescriptiveEDAAnalysis(main_features)
-    eda_service.print_data_samples(main_features)
+    # Step 5: Load model's features and their attributes (data type category, target variable)
+
+    feature_manager = FeatureManager(
+        source_type=source_type,
+        source_path=Construct_Input_Path(input_data_folder, model_features),
+        global_config=global_config,
+        query=model_features_query
+    )
+
+    nominal_features = feature_manager.get_nominal_features()
+    ordinal_features = feature_manager.get_ordinal_features()
+    numerical_features = feature_manager.get_numerical_features()
+    target_variable = feature_manager.get_target_variable()
+    all_features = feature_manager.get_all_features()
+
+    print("Nominal Features:", nominal_features)
+    print("Ordinal Features:", ordinal_features)
+    print("Numerical Features:", numerical_features)
+    print("Target Variable:", target_variable)
+    print("All Features:", all_features)
 
     # ----------------------------------------------------------------------------------
     # Step 6: Exploratory Data Analysis (EDA)
@@ -159,15 +148,12 @@ def main():
 # ------------------------------------------
     # Step 6_2: Analyze probability distributions for specific numeric variables
 
-    numeric_variables = main_features[main_features['type']
-                                      == 'numerical']['feature'].tolist()
-
     # Opionally the 'method' variable can be passed to determine the method for finding the best fit
     # THis method accepts these values: 'sumsquare_error','aic' or 'bic'
     # By default it is set to 'sumsquare_error'
-    # To pass variable based on its index: [numeric_variables[0]] or simpley write its name: "person_age"
+    # To pass variable based on its index: [numerical_features[0]] or simpley write its name: "person_age"
     # distribution_results = eda_service.fit_best_distribution(
-    #     numeric_variables, method='sumsquare_error', common_distributions=True, timeout=120)
+    #     numerical_features, method='sumsquare_error', common_distributions=True, timeout=120)
 
     # -----------------------------------------
 
@@ -183,13 +169,13 @@ def main():
 
     # Call the visualization function
     # viz.plot_distributions(
-    #     fitted_distributions=distribution_results, variables=numeric_variables)
+    #     fitted_distributions=distribution_results, variables=numerical_features)
 
-    viz.plot_histogram(variables=numeric_variables, orientation="vertical")
+    viz.plot_histogram(variables=numerical_features, orientation="vertical")
 
     # ----------------------------------------------------------------------------------
     # Step 8: Close the database connection (if using database)
-    if use_database:
+    if source_type == "sql":
         db_utils.close_connection()
 
 

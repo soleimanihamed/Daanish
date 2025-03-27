@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as st
+import pandas as pd
+from scipy.stats import linregress
 
 
 class Visualisation:
@@ -60,11 +62,6 @@ class Visualisation:
             # Convert dictionary to tuple format expected by scipy.stats
             params = tuple(params_dict.values())
 
-            # Automatically determine bins if "auto"
-            # if bins == "auto":
-            #     bins = np.histogram_bin_edges(
-            #         data_series, bins="auto")  # Determine best bin edges
-
             # Plot histogram
             plt.figure(figsize=(8, 5))
             sns.histplot(data_series, bins=bins, kde=False, stat="density",
@@ -108,18 +105,18 @@ class Visualisation:
                 print(f"Warning: {variable} not found in dataset. Skipping.")
                 continue
 
-            data_series = self.data[variable].dropna()
-
             plt.figure(figsize=(8, 5))
 
-            if self.data[variable].dtype in ["int64", "float64"]:  # ✅ Numerical Data
-                sns.histplot(data=self.data, x=variable if orientation == "vertical" else None,
-                             y=variable if orientation == "horizontal" else None,
-                             bins=bins, kde=False, stat="count",
-                             color="blue", alpha=0.6)
+            # Drop NaN values
+            data_series = self.data[variable].dropna()
 
-            else:  # ✅ Categorical Data
-                sns.countplot(data=self.data, x=variable if orientation == "vertical" else None,
+            if data_series.dtype in ["int64", "float64"]:  # Numerical Data
+                sns.histplot(data=data_series,
+                             bins=bins, kde=False, stat="count", color="blue", alpha=0.6,
+                             orientation="vertical" if orientation == "vertical" else "horizontal")
+
+            else:  # Categorical Data
+                sns.countplot(data=data_series.to_frame(), x=variable if orientation == "vertical" else None,
                               y=variable if orientation == "horizontal" else None,
                               color="blue", alpha=0.6)
 
@@ -128,3 +125,70 @@ class Visualisation:
             plt.ylabel(variable if orientation == "horizontal" else "Count")
             plt.title(f"Histogram of {variable}")
             plt.show()
+
+    def plot_scatter(self, x_var, y_var, hue_var=None, trendline=True):
+        """
+        Plot a scatter plot with an optional trend line.
+
+        Parameters:
+            x_var (str): Name of the variable for the X-axis.
+            y_var (str): Name of the variable for the Y-axis.
+            hue_var (str, optional): Categorical variable for coloring points.
+            trendline (bool): Whether to add a linear regression trend line.
+        """
+        if x_var not in self.data.columns or y_var not in self.data.columns:
+            print(
+                f"Warning: {x_var} or {y_var} not found in dataset. Skipping.")
+            return
+
+        plt.figure(figsize=(8, 5))
+
+        # Create scatter plot
+        sns.scatterplot(data=self.data, x=x_var, y=y_var,
+                        hue=hue_var, alpha=0.6, palette="viridis")
+
+        # Add trend line using linear regression
+        if trendline:
+            x = self.data[x_var].dropna()
+            y = self.data[y_var].dropna()
+
+            if len(x) == len(y):  # Ensure equal length
+                slope, intercept, r_value, _, _ = linregress(x, y)
+                r_squared = r_value ** 2  # Compute R²
+                trend_x = np.linspace(x.min(), x.max(), 100)
+                trend_y = slope * trend_x + intercept
+                plt.plot(trend_x, trend_y, color="red",
+                         linestyle="--", linewidth=2.5, label=f"Trend Line (R²={r_squared:.3f})")
+
+        # Customize plot
+        plt.xlabel(x_var)
+        plt.ylabel(y_var)
+        plt.title(f"Scatter Plot of {y_var} vs {x_var}")
+        plt.legend()
+        plt.show()
+
+    def plot_boxplot(self, column, by=None, title='Box Plot'):
+        """
+        Creates a box plot of a specified column, optionally grouped by another column.
+
+        Parameters:
+            column (str): The column to create the box plot for.
+            by (str, optional): The column to group the box plots by.
+            title (str): The title of the plot.
+        """
+        if column not in self.data.columns:
+            print(f"Warning: Column '{column}' not found in dataset.")
+            return
+
+        if by and by not in self.data.columns:
+            print(f"Warning: Column '{by}' not found in dataset.")
+            return
+
+        plt.figure(figsize=(8, 6))
+        if by:
+            self.data.boxplot(column=[column], by=by)
+        else:
+            self.data.boxplot(column=[column])
+
+        plt.title(title)
+        plt.show()

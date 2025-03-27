@@ -3,6 +3,7 @@ import pandas as pd
 from utils.csv_data_utils import CSVDataUtils
 from utils.database_utils import DatabaseUtils
 from utils.config_utils import get_database_config
+from utils.data_preprocessor import DataPreprocessor
 
 
 class MainDatasetManager:
@@ -63,19 +64,20 @@ class MainDatasetManager:
             return self.data.describe()
         return None
 
-    def handle_missing_values(self, strategy="drop"):
-        """
-        Handle missing values in the dataset.
-
-        Args:
-            strategy (str): "drop" to remove missing values, "fill_mean" to replace with column mean.
-        """
+    def preprocess_data(self, preprocessing_steps=None):
+        """Preprocess the loaded data."""
         if self.data is None:
             raise ValueError("No dataset loaded.")
 
-        if strategy == "drop":
-            self.data.dropna(inplace=True)
-        elif strategy == "fill_mean":
-            self.data.fillna(self.data.mean(), inplace=True)
-        else:
-            raise ValueError("Invalid missing value handling strategy.")
+        # create a copy, to not change the original dataframe.
+        preprocessor = DataPreprocessor(self.data.copy())
+
+        if preprocessing_steps:
+            for step in preprocessing_steps:
+                method = getattr(preprocessor, step["method"], None)
+                if method:
+                    method(**step.get("params", {}))
+                else:
+                    print(f"Warning: Method {step['method']} not found.")
+
+        self.data = preprocessor.get_cleaned_data()

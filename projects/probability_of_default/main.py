@@ -1,16 +1,15 @@
+# projects\probability_of_default\main.py
 
-from utils.config_utils import initialize_daanish,  load_project_config, get_database_config
-from utils.csv_data_utils import CSVDataUtils
-from utils.database_utils import DatabaseUtils
+import os
+from utils.config_utils import initialize_daanish,  load_project_config
 from utils.eda_descriptive_analysis import DescriptiveEDAAnalysis
 from utils.eda_sweetviz import SweetvizEDA
 from utils.save_utils import SaveUtils
-import os
-from configparser import ConfigParser
-import pandas as pd
 from utils.visualisation import Visualisation
 from utils.feature_manager import FeatureManager
 from utils.main_dataset_manager import MainDatasetManager
+from utils.eda_statistical_analysis import StatisticalEDAAnalysis
+from utils.data_preprocessor import DataPreprocessor
 
 
 def load_project_configuration():
@@ -94,6 +93,10 @@ def main():
     model_features_query = project_config['model_features_query']
     main_dataset_query = project_config['main_dataset_query']
 
+    # ------------------------------
+    save_utils = SaveUtils(
+        output_dir=Construct_Output_Path(output_data_folder, ""))
+
     # ----------------------------------------------------------------------------------
 
     # Step 4: Load main dataset
@@ -124,12 +127,16 @@ def main():
     numerical_features = feature_manager.get_numerical_features()
     target_variable = feature_manager.get_target_variable()
     all_features = feature_manager.get_all_features()
+    missing_value_strategies = feature_manager.get_missing_value_strategies()
+    missing_fill_values = feature_manager.get_missing_fill_values()
 
     print("Nominal Features:", nominal_features)
     print("Ordinal Features:", ordinal_features)
     print("Numerical Features:", numerical_features)
     print("Target Variable:", target_variable)
     print("All Features:", all_features)
+    print("Missing Value Strategies:", missing_value_strategies)
+    print("Missing Fill Values:", missing_fill_values)
 
     # ----------------------------------------------------------------------------------
     # Step 6: Exploratory Data Analysis (EDA)
@@ -151,9 +158,9 @@ def main():
     # Opionally the 'method' variable can be passed to determine the method for finding the best fit
     # THis method accepts these values: 'sumsquare_error','aic' or 'bic'
     # By default it is set to 'sumsquare_error'
-    # To pass variable based on its index: [numerical_features[0]] or simpley write its name: "person_age"
+
     # distribution_results = eda_service.fit_best_distribution(
-    #     numerical_features, method='sumsquare_error', common_distributions=True, timeout=120)
+    #     ['person_age', 'loan_amnt'], method='sumsquare_error', common_distributions=True, timeout=120)
 
     # -----------------------------------------
 
@@ -165,18 +172,79 @@ def main():
     # ----------------------------------------------------------------------------------
     # Step 7: Visualisation
     # Initialize Visualization class with the dataset
+    # Call the visualization function to plot distribution/histogram
     viz = Visualisation(main_df)
 
-    # Call the visualization function
+    # --------------------------------
+    # Plot fitted distributions
     # viz.plot_distributions(
     #     fitted_distributions=distribution_results, variables=numerical_features)
 
-    viz.plot_histogram(variables=numerical_features, orientation="vertical")
+    # --------------------------------
+    # Plot histograms
+    # viz.plot_histogram(variables=numerical_features, orientation="vertical")
+    # viz.plot_histogram(variables=nominal_features, orientation="horizontal")
+
+    # --------------------------------
+    # Scatter Plot
+
+    # Scatter plot with color based on `loan_grade`
+    # viz.plot_scatter(x_var="loan_amnt", y_var="loan_int_rate",
+    #                 hue_var="loan_grade")
+
+    # Scatter plot
+    # viz.plot_scatter(x_var="person_age",
+    #                  y_var="person_income", trendline=True)
+
+    # --------------------------------
+    # Box Plot
+    # viz.plot_boxplot(column='loan_percent_income', by='loan_status',
+    #                  title='Loan Percent Income by Loan Status')
+    # viz.plot_boxplot(column='loan_amnt', by='loan_grade',
+    #                  title='Loan Amount by Loan Grade')
 
     # ----------------------------------------------------------------------------------
-    # Step 8: Close the database connection (if using database)
-    if source_type == "sql":
-        db_utils.close_connection()
+    # Step 8: Statistical Analysis
+    eda = StatisticalEDAAnalysis(main_df)
+
+    # For two variables
+    # crosstab_result_two = eda.crosstab(
+    #     "loan_intent", "loan_status", normalize="index")
+
+    # # For three variables
+    # crosstab_result_three = eda.crosstab_three_way("person_home_ownership",
+    #                                                "loan_status", "loan_grade")
+
+    # Use SaveUtils to generate HTML tables
+    # save_utils = SaveUtils(
+    #     output_dir=Construct_Output_Path(output_data_folder, ""))
+    # save_utils.generate_styled_html_tables(
+    #     dataframes=[crosstab_result_two, crosstab_result_three],
+    #     filenames=["crosstab_two_styled.html", "crosstab_three_styled.html"]
+    # )
+
+    # ----------------------------------------------------------------------------------
+    # Step 9: Data Cleaning
+    dp = DataPreprocessor(main_df)
+
+    # -----------------------------------
+    # Handle missing values
+    imputed_records, imputed_dataset = dp.handle_missing_values(
+        all_features, strategies=missing_value_strategies, fill_values=missing_fill_values)
+    print(imputed_records)
+    print(imputed_dataset)
+
+    save_utils.save_dataframe_to_csv(
+        imputed_records, "imputed_records.csv", overwrite=True)
+
+    # --------------------------------
+    # outliers = dp.detect_outliers_distribution(
+    #     distribution_results, confidence_interval=0.99)
+    # outliers = dp.detect_outliers_isolation_forest(
+    #     features={"person_age", "person_emp_length"}, contamination=0.001, n_estimators=500)
+    # print(outliers)
+    # save_utils.save_dataframe_to_csv(
+    #     outliers, "outliers_isolation_forest.csv", overwrite=True)
 
 
 if __name__ == "__main__":

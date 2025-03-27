@@ -2,8 +2,9 @@
 import os
 import sys
 from configparser import ConfigParser
-from dotenv import load_dotenv
 import logging
+from dotenv import load_dotenv
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

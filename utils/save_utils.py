@@ -81,3 +81,49 @@ class SaveUtils:
             print(f"JSON data saved to {filename} successfully.")
         except Exception as e:
             print(f"Error occurred while saving JSON data: {e}")
+
+    def generate_styled_html_tables(self, dataframes, filenames, overwrite=True):
+        """
+        Generates HTML tables with styled borders and saves them to files.
+
+        Args:
+            dataframes (list of pandas.DataFrame): List of DataFrames to convert to HTML.
+            filenames (list of str): List of filenames for the output HTML files.
+            overwrite (bool): Whether to overwrite existing files.
+        """
+        if len(dataframes) != len(filenames):
+            raise ValueError(
+                "Number of DataFrames and filenames must be the same.")
+
+        table_style = """
+        <style>
+            table {
+                border-collapse: collapse;
+                width: 100%;
+            }
+            th, td {
+                border: 1px solid black;
+                padding: 8px;
+                text-align: left;
+            }
+        </style>
+        """
+
+        for df, filename in zip(dataframes, filenames):
+            html_content = df.to_html()
+            styled_html = table_style + html_content
+            filepath = os.path.join(self.output_dir, filename)
+
+            try:
+                if os.path.exists(filepath) and not overwrite:
+                    print(
+                        f"File {filename} already exists. Set overwrite=True to overwrite it.")
+                else:
+                    with open(filepath, "w") as f:
+                        f.write(styled_html)
+                    print(
+                        f"Styled HTML file saved to {filename} successfully.")
+
+            except Exception as e:
+                print(
+                    f"Error occurred while saving HTML table {filename}: {e}")

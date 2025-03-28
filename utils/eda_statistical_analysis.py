@@ -8,19 +8,45 @@ class StatisticalEDAAnalysis:
     def __init__(self, data):
         self.data = data
 
-    def perform_normality_test(self, feature):
+    def perform_normality_test_Shapiro_Wilk(self, features, alpha=0.05):
         """
-        Performs Shapiro-Wilk normality test on a feature.
+        Performs Shapiro-Wilk normality test on multiple features and returns statistical attributes.
 
         Args:
-            feature (str): Feature name.
+            features (list): List of feature names.
+            alpha (float): Significance level for the Shapiro-Wilk test.
 
         Returns:
-            tuple: Test statistic and p-value.
+            dict: Dictionary containing statistical attributes and normality test results for each feature.
         """
-        stat, p_value = stats.shapiro(self.data[feature])
-        print(f"Shapiro-Wilk test statistic: {stat}, p-value: {p_value}")
-        return stat, p_value
+        results = {}
+
+        for feature in features:
+            if feature not in self.data.columns:
+                print(
+                    f"Warning: Feature '{feature}' not found in the DataFrame.")
+                continue
+
+            if pd.api.types.is_numeric_dtype(self.data[feature]):
+                stat, p_value = stats.shapiro(self.data[feature].dropna())
+
+                results[feature] = {
+                    "mean": self.data[feature].mean(),
+                    "std": self.data[feature].std(),
+                    "min": self.data[feature].min(),
+                    "max": self.data[feature].max(),
+                    "median": self.data[feature].median(),
+                    "q1": self.data[feature].quantile(0.25),
+                    "q3": self.data[feature].quantile(0.75),
+                    "shapiro_stat": stat,
+                    "shapiro_p_value": p_value,
+                    "is_normal": p_value > alpha,
+                }
+            else:
+                print(
+                    f"Skipping normality test for non-numerical feature: {feature}")
+
+        return results
 
     def categorical_correlation_analysis(self):
         """

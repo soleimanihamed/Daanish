@@ -236,12 +236,35 @@ def main():
 
     save_utils.save_dataframe_to_csv(
         imputed_records, "imputed_records.csv", overwrite=True)
+    # --------------------------------
+    # Outlier detection
+
+    # outliers = dp.detect_outliers_iqr(
+    #     imputed_dataset, ['person_age', 'person_home_ownership', 'loan_amnt'], threshold=3)
+
+    # outliers = dp.detect_custom_outliers(imputed_dataset, ['person_age', 'person_home_ownership', 'loan_amnt'],
+    #                                      lower_bounds={
+    #                                          'person_age': 15, 'loan_amnt': 1000},
+    #                                      upper_bounds={'person_age': 80, 'loan_amnt': 1000000000})
+
+    # outliers = dp.detect_outliers_zscore(imputed_dataset, [
+    #                                      'person_age', 'person_home_ownership', 'loan_amnt'], threshold=3, alpha=0.05)
+
+    # outliers = dp.detect_outliers_distribution(imputed_dataset,
+    #                                            distribution_results, confidence_interval=0.99)
+
+    # outliers = dp.detect_outliers_isolation_forest(imputed_dataset,
+    #                                                features=["person_age", "person_emp_length"], contamination=0.001, n_estimators=500)
+
+    outliers = dp.detect_outliers_lof(imputed_dataset,
+                                      features=["person_age"], n_neighbors=10, contamination=0.01)
+    # print(outliers)
+
+    cleaned_df = dp.remove_outliers(imputed_dataset, outliers)
+    print(cleaned_df)
 
     # --------------------------------
-    # outliers = dp.detect_outliers_distribution(
-    #     distribution_results, confidence_interval=0.99)
-    # outliers = dp.detect_outliers_isolation_forest(
-    #     features={"person_age", "person_emp_length"}, contamination=0.001, n_estimators=500)
+
     # print(outliers)
     # save_utils.save_dataframe_to_csv(
     #     outliers, "outliers_isolation_forest.csv", overwrite=True)

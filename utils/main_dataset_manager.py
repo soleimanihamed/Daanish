@@ -64,20 +64,5 @@ class MainDatasetManager:
             return self.data.describe()
         return None
 
-    def preprocess_data(self, preprocessing_steps=None):
-        """Preprocess the loaded data."""
-        if self.data is None:
-            raise ValueError("No dataset loaded.")
-
-        # create a copy, to not change the original dataframe.
-        preprocessor = DataPreprocessor(self.data.copy())
-
-        if preprocessing_steps:
-            for step in preprocessing_steps:
-                method = getattr(preprocessor, step["method"], None)
-                if method:
-                    method(**step.get("params", {}))
-                else:
-                    print(f"Warning: Method {step['method']} not found.")
-
-        self.data = preprocessor.get_cleaned_data()
+    # def preprocess_data(self, preprocessing_steps=None):
+    #     """Preprocess the loaded data."""

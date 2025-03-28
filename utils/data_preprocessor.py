@@ -6,6 +6,7 @@ from scipy.stats import (norm, expon, lognorm, gamma, beta, weibull_min, chi2, p
                          triang, laplace, logistic, genextreme, skewnorm, genpareto, burr12, fatiguelife, geninvgauss, halfnorm, exponpow)
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
+from utils.eda_statistical_analysis import StatisticalEDAAnalysis
 
 
 class DataPreprocessor:
@@ -171,18 +172,175 @@ class DataPreprocessor:
             raise ValueError(
                 f"Invalid missing value handling strategy: {strategy}")
 
-    def detect_outliers_iqr(self, column, threshold=1.5):
-        """Detect outliers using IQR."""
-        q1 = self.data[column].quantile(0.25)
-        q3 = self.data[column].quantile(0.75)
-        iqr = q3 - q1
-        lower_bound = q1 - (threshold * iqr)
-        upper_bound = q3 + (threshold * iqr)
-        outliers = self.data[(self.data[column] < lower_bound) | (
-            self.data[column] > upper_bound)]
-        return outliers
+    def detect_outliers_iqr(self, df, features, threshold=1.5):
+        """Detect outliers for numerical features using IQR."""
+        numerical_outliers = []
 
-    def detect_outliers_distribution(self, distribution_results, confidence_interval=0.95):
+        for feature in features:
+            if feature not in df.columns:
+                print(
+                    f"Warning: Feature '{feature}' not found in the DataFrame.")
+                continue
+
+            # Check if feature is numerical
+            if pd.api.types.is_numeric_dtype(df[feature]):
+                q1 = df[feature].quantile(0.25)
+                q3 = df[feature].quantile(0.75)
+                iqr = q3 - q1
+                lower_bound = q1 - (threshold * iqr)
+                upper_bound = q3 + (threshold * iqr)
+
+                feature_outliers = df[(df[feature] < lower_bound) | (
+                    df[feature] > upper_bound)]
+
+                if not feature_outliers.empty:
+                    outliers_df = feature_outliers.copy()
+                    outliers_df["outlier_source"] = feature
+                    numerical_outliers.append(outliers_df)
+            else:
+                print(f"Skipping IQR for non-numerical feature: {feature}")
+
+        if not numerical_outliers:
+            print("No numerical outliers found.")
+            return pd.DataFrame()
+
+        combined_outliers = pd.concat(numerical_outliers)
+
+        grouped_sources = combined_outliers.groupby(combined_outliers.index)[
+            "outlier_source"].apply(lambda x: ", ".join(set(x)))
+
+        combined_outliers = combined_outliers.loc[grouped_sources.index].copy()
+        combined_outliers["outlier_source"] = grouped_sources
+
+        num_outliers = len(combined_outliers)
+        print(f"Total number of IQR outliers found: {num_outliers}")
+
+        return combined_outliers
+
+    def detect_custom_outliers(self, df, features, lower_bounds=None, upper_bounds=None):
+        """Detect outliers using custom lower and upper bounds for numerical features."""
+        all_outliers = []
+
+        if lower_bounds is None and upper_bounds is None:
+            print("Warning: No lower or upper bounds provided.")
+            return pd.DataFrame()  # Return empty DataFrame if no bounds are provided
+
+        for feature in features:
+            if feature not in df.columns:
+                print(
+                    f"Warning: Feature '{feature}' not found in the DataFrame.")
+                continue
+
+            # Check if feature is numerical
+            if pd.api.types.is_numeric_dtype(df[feature]):
+                lower_bound = float('-inf')  # Default lower bound
+                upper_bound = float('inf')  # Default upper bound
+
+                if lower_bounds and feature in lower_bounds:
+                    lower_bound = lower_bounds[feature]
+
+                if upper_bounds and feature in upper_bounds:
+                    upper_bound = upper_bounds[feature]
+
+                feature_outliers = df[(df[feature] < lower_bound) | (
+                    df[feature] > upper_bound)]
+
+                if not feature_outliers.empty:
+                    outliers_df = feature_outliers.copy()
+                    outliers_df["outlier_source"] = feature
+                    all_outliers.append(outliers_df)
+            else:
+                print(
+                    f"Skipping custom bounds for non-numerical feature: {feature}")
+
+        if not all_outliers:
+            print("No custom outliers found.")
+            return pd.DataFrame()
+
+        combined_outliers = pd.concat(all_outliers)
+
+        grouped_sources = combined_outliers.groupby(combined_outliers.index)[
+            "outlier_source"].apply(lambda x: ", ".join(set(x)))
+
+        combined_outliers = combined_outliers.loc[grouped_sources.index].copy()
+        combined_outliers["outlier_source"] = grouped_sources
+
+        num_outliers = len(combined_outliers)
+        print(f"Total number of custom outliers found: {num_outliers}")
+
+        return combined_outliers
+
+    def detect_outliers_zscore(self, df, features, threshold=3, alpha=0.05):
+        """
+        Detect outliers using Z-score for numerical features, with normality testing.
+
+        Args:
+            df (pd.DataFrame): Input DataFrame.
+            features (list): List of feature names.
+            threshold (float): Z-score threshold for outlier detection.
+            alpha (float): Significance level for the Shapiro-Wilk test.
+
+        Returns:
+            pd.DataFrame: DataFrame containing detected outliers.
+        """
+        all_outliers = []
+        eda = StatisticalEDAAnalysis(df)
+
+        if not isinstance(features, list):
+            print("Warning: Features must be a list.")
+            return pd.DataFrame()
+
+        normality_results = eda.perform_normality_test_Shapiro_Wilk(
+            features, alpha)  # call normality test
+
+        for feature in features:
+            if feature not in df.columns:
+                print(
+                    f"Warning: Feature '{feature}' not found in the DataFrame.")
+                continue
+
+            if pd.api.types.is_numeric_dtype(df[feature]):
+                if normality_results[feature]["is_normal"]:  # check if normal
+                    mean = df[feature].mean()
+                    std = df[feature].std()
+
+                    # Handle cases where std is zero (constant column)
+                    if std == 0:
+                        print(
+                            f"Warning: Standard deviation is zero for feature '{feature}'. Skipping.")
+                        continue
+
+                    z_scores = abs((df[feature] - mean) / std)
+                    feature_outliers = df[z_scores > threshold]
+
+                    if not feature_outliers.empty:
+                        outliers_df = feature_outliers.copy()
+                        outliers_df["outlier_source"] = feature
+                        all_outliers.append(outliers_df)
+                else:
+                    print(
+                        f"Warning: Feature '{feature}' does not appear to be normally distributed (p-value={normality_results[feature]['shapiro_p_value']}). Z-score may be inaccurate. Consider alternative methods.")
+            else:
+                print(f"Skipping Z-score for non-numerical feature: {feature}")
+
+        if not all_outliers:
+            print("No Z-score outliers found.")
+            return pd.DataFrame()
+
+        combined_outliers = pd.concat(all_outliers)
+
+        grouped_sources = combined_outliers.groupby(combined_outliers.index)[
+            "outlier_source"].apply(lambda x: ", ".join(set(x)))
+
+        combined_outliers = combined_outliers.loc[grouped_sources.index].copy()
+        combined_outliers["outlier_source"] = grouped_sources
+
+        num_outliers = len(combined_outliers)
+        print(f"Total number of Z-score outliers found: {num_outliers}")
+
+        return combined_outliers
+
+    def detect_outliers_distribution(self, df, distribution_results, confidence_interval=0.95):
         """
         Detects outliers based on fitted probability distributions for multiple features.
 
@@ -214,7 +372,7 @@ class DataPreprocessor:
 
             distribution_name = result["best_distribution"]
             params = result["parameters"]
-            filtered_data = self.data[feature].dropna()
+            filtered_data = df[feature].dropna()
             distribution = distribution_mapping.get(distribution_name)
 
             if distribution is None:
@@ -256,7 +414,7 @@ class DataPreprocessor:
                     filtered_data > upper_bound)]
 
                 if not outliers.empty:
-                    outliers_df = self.data.loc[outliers.index]
+                    outliers_df = df.loc[outliers.index]
                     outliers_df["outlier_source"] = feature
                     all_outliers.append(outliers_df)
 
@@ -287,64 +445,127 @@ class DataPreprocessor:
 
         return combined_outliers
 
-    def detect_outliers_isolation_forest(self, features, contamination='auto', max_samples=0.8, n_estimators=200):
+    def detect_outliers_isolation_forest(self, df, features, contamination='auto', max_samples=0.8, n_estimators=200):
+        """Detect outliers using Isolation Forest for numerical features."""
+
+        if not isinstance(features, list):
+            print("Warning: Features must be a list.")
+            return pd.DataFrame()
+
         iso_forest = IsolationForest(
             contamination=contamination,
             random_state=42,
-            max_samples=max_samples,  # Uses % of the data for each tree.
-            # More trees = better anomaly detection.
+            max_samples=max_samples,
             n_estimators=n_estimators
         )
 
         outlier_flags = {}
+
         for feature in features:
-            if feature in self.data.columns:
-                data_reshaped = self.data[[feature]].values
+            if feature not in df.columns:
+                print(
+                    f"Warning: Feature '{feature}' not found in the DataFrame.")
+                continue
+
+            if pd.api.types.is_numeric_dtype(df[feature]):
+                data_reshaped = df[[feature]].values
                 outlier_flags[feature] = iso_forest.fit_predict(
                     data_reshaped) == -1  # -1 means outlier
+            else:
+                print(
+                    f"Skipping Isolation Forest for non-numerical feature: {feature}")
 
-        outlier_records = pd.DataFrame(index=self.data.index)
+        outlier_records = pd.DataFrame(index=df.index)
 
         for feature, flags in outlier_flags.items():
-            outlier_records[feature] = flags
+            if feature in df.columns:  # prevent error if non numerical features were passed.
+                outlier_records[feature] = flags
 
         # Identify rows with at least one outlier
         outlier_rows = outlier_records.any(axis=1)
 
         # Get actual values of all features for outliers
-        outlier_data = self.data.loc[outlier_rows, :].copy()
+        outlier_data = df.loc[outlier_rows, :].copy()
+
+        if outlier_data.empty:
+            print("No Isolation Forest outliers found.")
+            return pd.DataFrame()
 
         outlier_data["outlier_source"] = outlier_records.loc[outlier_rows].apply(
             lambda row: ", ".join(row.index[row]), axis=1
         )
 
+        num_outliers = len(outlier_data)
+        print(
+            f"Total number of Isolation Forest outliers found: {num_outliers}")
+
         return outlier_data
 
-    def detect_outliers_lof(self):
-        lof = LocalOutlierFactor(n_neighbors=20, contamination=0.01)
-        outlier_pred = lof.fit_predict(np.array(self.data).reshape(-1, 1))
-        return outlier_pred == -1  # -1 means outlier
+    def detect_outliers_lof(self, df, features, n_neighbors=20, contamination=0.01):
+        """Detect outliers using Local Outlier Factor (LOF) for numerical features."""
+        all_outliers = []
 
-    def remove_outliers_iqr(self, column, threshold=1.5):
-        """Remove outliers using IQR."""
-        outliers = self.detect_outliers_iqr(column, threshold)
-        self.data = self.data.drop(outliers.index)
+        if not isinstance(features, list):
+            print("Warning: Features must be a list.")
+            return pd.DataFrame()
 
-    def remove_outliers_distributions(self, outliers_df):
+        for feature in features:
+            if feature not in df.columns:
+                print(
+                    f"Warning: Feature '{feature}' not found in the DataFrame.")
+                continue
+
+            if pd.api.types.is_numeric_dtype(df[feature]):
+                lof = LocalOutlierFactor(
+                    n_neighbors=n_neighbors, contamination=contamination)
+                outlier_pred = lof.fit_predict(
+                    df[[feature]]) == -1  # -1 means outlier
+
+                feature_outliers = df[outlier_pred]
+
+                if not feature_outliers.empty:
+                    outliers_df = feature_outliers.copy()
+                    outliers_df["outlier_source"] = feature
+                    all_outliers.append(outliers_df)
+            else:
+                print(f"Skipping LOF for non-numerical feature: {feature}")
+
+        if not all_outliers:
+            print("No LOF outliers found.")
+            return pd.DataFrame()
+
+        combined_outliers = pd.concat(all_outliers)
+
+        grouped_sources = combined_outliers.groupby(combined_outliers.index)[
+            "outlier_source"].apply(lambda x: ", ".join(set(x)))
+
+        combined_outliers = combined_outliers.loc[grouped_sources.index].copy()
+        combined_outliers["outlier_source"] = grouped_sources
+
+        num_outliers = len(combined_outliers)
+        print(f"Total number of LOF outliers found: {num_outliers}")
+
+        return combined_outliers
+
+    def remove_outliers(self, df, outliers_df):
         """
-        Removes the outliers specified in outliers_df from the DataPreprocessor's data.
+        Removes outliers from the DataFrame based on the provided outliers DataFrame.
 
         Args:
-            outliers_df (pandas.DataFrame): DataFrame containing the outliers to remove.
+            df (pd.DataFrame): The original DataFrame.
+            outliers_df (pd.DataFrame): DataFrame containing outlier rows.
+
+        Returns:
+            pd.DataFrame: The DataFrame with outliers removed.
         """
         if outliers_df.empty:
             print("No outliers to remove.")
-            return
+            return df.copy()  # Return a copy to avoid modifying the original
 
         outlier_indices = outliers_df.index
-        self.data = self.data.drop(outlier_indices)
-        print(f"Removed {len(outlier_indices)} outliers.")
+        cleaned_df = df.drop(index=outlier_indices)
 
-    def get_cleaned_data(self):
-        """Return the cleaned dataset."""
-        return self.data
+        num_removed = len(outlier_indices)
+        print(f"Removed {num_removed} outliers.")
+
+        return cleaned_df

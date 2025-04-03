@@ -10,6 +10,7 @@ from utils.feature_manager import FeatureManager
 from utils.main_dataset_manager import MainDatasetManager
 from utils.eda_statistical_analysis import StatisticalEDAAnalysis
 from utils.data_preprocessor import DataPreprocessor
+from utils.generate_reports import ReportGenerator
 
 
 def load_project_configuration():
@@ -130,27 +131,53 @@ def main():
     missing_value_strategies = feature_manager.get_missing_value_strategies()
     missing_fill_values = feature_manager.get_missing_fill_values()
 
-    print("Nominal Features:", nominal_features)
-    print("Ordinal Features:", ordinal_features)
-    print("Numerical Features:", numerical_features)
-    print("Target Variable:", target_variable)
-    print("All Features:", all_features)
-    print("Missing Value Strategies:", missing_value_strategies)
-    print("Missing Fill Values:", missing_fill_values)
+    # print("Nominal Features:", nominal_features)
+    # print("Ordinal Features:", ordinal_features)
+    # print("Numerical Features:", numerical_features)
+    # print("Target Variable:", target_variable)
+    # print("All Features:", all_features)
+    # print("Missing Value Strategies:", missing_value_strategies)
+    # print("Missing Fill Values:", missing_fill_values)
 
     # ----------------------------------------------------------------------------------
     # Step 6: Exploratory Data Analysis (EDA)
 
+    # ----------------------------------
     # Step 6_1: Descriptive Analysis for Raw Data
     eda_service = DescriptiveEDAAnalysis(main_df)
-    eda_service.print_data_samples(main_df, 10)
-    eda_service.save_summary_to_json(Construct_Output_Path(output_data_folder,
-                                                           'main_detailed_EDA.json'))
-    # eda_service.print_detailed_summary()
-    # eda_service.print_high_level_summary()
-    eda_service.dataset_summary()
-    eda_service.save_high_level_summary_to_csv(Construct_Output_Path(output_data_folder,
-                                                                     'main_EDA.csv'))
+
+    # ----------------------------------
+    # Print summaries of data samples
+    # print(eda_service.get_data_samples(10))
+
+    # ----------------------------------
+    # Print summaries of dataset
+    # ReportGenerator.print_dataset_summary(eda_service.get_dataset_summary())
+
+    # ----------------------------------
+    # Print summaries of feature(s) into console
+
+    # ReportGenerator.print_high_level_summary(
+    #     eda_service.get_all_feature_summaries())
+
+    # ----------------------------------
+    # Print summaries of feature(s) into a csv file
+
+    # Create csv output for descriptive analysis of a specific feature
+    # feature_name = 'person_age'
+    # feature_summary = eda_service.get_feature_summary(feature_name)
+    # ReportGenerator.save_high_level_summary_to_csv({feature_name: feature_summary},
+    #                                                Construct_Output_Path(output_data_folder, 'features_descriptive_summary.csv'))
+
+    # Create csv output for descriptive analysis of all features
+    # ReportGenerator.save_high_level_summary_to_csv(eda_service.get_all_feature_summaries(),
+    #                                                Construct_Output_Path(output_data_folder, 'features_descriptive_summary.csv'))
+
+    # ----------------------------------
+    # Print summaries of features into a json file
+
+    save_utils.save_json(eda_service.get_all_feature_summaries(),
+                         Construct_Output_Path(output_data_folder, 'features_descriptive_summary.json'))
 
 # ------------------------------------------
     # Step 6_2: Analyze probability distributions for specific numeric variables
@@ -229,13 +256,13 @@ def main():
 
     # -----------------------------------
     # Handle missing values
-    imputed_records, imputed_dataset = dp.handle_missing_values(
-        all_features, strategies=missing_value_strategies, fill_values=missing_fill_values)
-    print(imputed_records)
-    print(imputed_dataset)
+    # imputed_records, imputed_dataset = dp.handle_missing_values(
+    #     all_features, strategies=missing_value_strategies, fill_values=missing_fill_values)
+    # print(imputed_records)
+    # print(imputed_dataset)
 
-    save_utils.save_dataframe_to_csv(
-        imputed_records, "imputed_records.csv", overwrite=True)
+    # save_utils.save_dataframe_to_csv(
+    #     imputed_records, "imputed_records.csv", overwrite=True)
     # --------------------------------
     # Outlier detection
 
@@ -256,12 +283,12 @@ def main():
     # outliers = dp.detect_outliers_isolation_forest(imputed_dataset,
     #                                                features=["person_age", "person_emp_length"], contamination=0.001, n_estimators=500)
 
-    outliers = dp.detect_outliers_lof(imputed_dataset,
-                                      features=["person_age"], n_neighbors=10, contamination=0.01)
+    # outliers = dp.detect_outliers_lof(imputed_dataset,
+    #                                   features=["person_age"], n_neighbors=10, contamination=0.01)
     # print(outliers)
 
-    cleaned_df = dp.remove_outliers(imputed_dataset, outliers)
-    print(cleaned_df)
+    # cleaned_df = dp.remove_outliers(imputed_dataset, outliers)
+    # print(cleaned_df)
 
     # --------------------------------
 

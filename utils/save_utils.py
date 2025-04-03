@@ -14,27 +14,24 @@ class SaveUtils:
             output_dir (str): Directory where output files will be saved.
         """
         self.output_dir = output_dir
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
 
-    def save_dataframe_to_csv(self, df, filename, overwrite=True):
+    def save_dataframe_to_csv(self, df, full_path_name, overwrite=True):
         """
         Saves a pandas DataFrame to a CSV file.
 
         Args:
             df (pandas.DataFrame): DataFrame to save.
-            filename (str): Name of the CSV file to save.
+            full_path_name (str): Path and name of the CSV file to save.
             overwrite (bool): Whether to overwrite the file if it exists. Default is True.
         """
-        filepath = os.path.join(self.output_dir, filename)
         try:
-            if os.path.exists(filepath) and not overwrite:
+            if os.path.exists(full_path_name) and not overwrite:
                 print(
-                    f"File {filename} already exists. Set overwrite=True to overwrite it.")
+                    f"File {full_path_name} already exists. Set overwrite=True to overwrite it.")
                 return
 
-            df.to_csv(filepath, index=False)
-            print(f"Data saved to {filename} successfully.")
+            df.to_csv(full_path_name, index=False)
+            print(f"Data saved to {full_path_name} successfully.")
         except Exception as e:
             print(f"Error occurred while saving data: {e}")
 
@@ -60,25 +57,24 @@ class SaveUtils:
         except Exception as e:
             print(f"Error occurred while saving HTML report: {e}")
 
-    def save_json(self, data, filename, overwrite=True):
+    def save_json(self, data, full_path_name, overwrite=True):
         """
         Saves data to a JSON file.
 
         Args:
             data (dict): Data to save in JSON format.
-            filename (str): Name of the JSON file to save.
+            full_path_name (str): Path and name of the JSON file to save.
             overwrite (bool): Whether to overwrite the file if it exists. Default is True.
         """
-        filepath = os.path.join(self.output_dir, filename)
         try:
-            if os.path.exists(filepath) and not overwrite:
+            if os.path.exists(full_path_name) and not overwrite:
                 print(
-                    f"File {filename} already exists. Set overwrite=True to overwrite it.")
+                    f"File {full_path_name} already exists. Set overwrite=True to overwrite it.")
                 return
 
-            with open(filepath, 'w', encoding='utf-8') as file:
+            with open(full_path_name, 'w', encoding='utf-8') as file:
                 json.dump(data, file, ensure_ascii=False, indent=4)
-            print(f"JSON data saved to {filename} successfully.")
+            print(f"JSON data saved to {full_path_name} successfully.")
         except Exception as e:
             print(f"Error occurred while saving JSON data: {e}")
 

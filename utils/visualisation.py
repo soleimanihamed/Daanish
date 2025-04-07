@@ -8,7 +8,7 @@ from scipy.stats import linregress
 
 
 class Visualisation:
-    def __init__(self, data):
+    def __init__(self, data, display_names):
         """
         Initialise the Visualisation class.
 
@@ -16,6 +16,8 @@ class Visualisation:
             data (pd.DataFrame): The dataset to visualise.
         """
         self.data = data
+        # Use provided mapping or empty dict
+        self.column_name_mapping = display_names
 
     def plot_distributions(self, fitted_distributions, variables=None, bins="auto"):
         """
@@ -80,10 +82,14 @@ class Visualisation:
             plt.plot(
                 x, pdf, label=f"{best_dist_name} distribution", linewidth=2, color="red")
 
+            # Use display names for plot titles and labels
+            # Get display name or original name if not found
+            display_name = self.column_name_mapping.get(variable, variable)
+
             # Customize plot
-            plt.xlabel(variable)
+            plt.xlabel(display_name)
             plt.ylabel("Density")
-            plt.title(f"Distribution of {variable}")
+            plt.title(f"Distribution of {display_name}")
             plt.legend()
             plt.show()
 
@@ -115,15 +121,28 @@ class Visualisation:
                              bins=bins, kde=False, stat="count", color="blue", alpha=0.6,
                              orientation="vertical" if orientation == "vertical" else "horizontal")
 
+                # Use display name for labels
+                x_label = "Count" if orientation == "horizontal" else self.column_name_mapping.get(
+                    variable, variable)
+                y_label = self.column_name_mapping.get(
+                    variable, variable) if orientation == "horizontal" else "Count"
+
             else:  # Categorical Data
                 sns.countplot(data=data_series.to_frame(), x=variable if orientation == "vertical" else None,
                               y=variable if orientation == "horizontal" else None,
                               color="blue", alpha=0.6)
 
+                # Use display name for labels
+                x_label = "Count" if orientation == "horizontal" else self.column_name_mapping.get(
+                    variable, variable)
+                y_label = self.column_name_mapping.get(
+                    variable, variable) if orientation == "horizontal" else "Count"
+
             # Customize plot
-            plt.xlabel("Count" if orientation == "horizontal" else variable)
-            plt.ylabel(variable if orientation == "horizontal" else "Count")
-            plt.title(f"Histogram of {variable}")
+            plt.xlabel(x_label)
+            plt.ylabel(y_label)
+            plt.title(
+                f"Histogram of {self.column_name_mapping.get(variable, variable)}")
             plt.show()
 
     def plot_scatter(self, x_var, y_var, hue_var=None, trendline=True):
@@ -161,13 +180,20 @@ class Visualisation:
                          linestyle="--", linewidth=2.5, label=f"Trend Line (R²={r_squared:.3f})")
 
         # Customize plot
-        plt.xlabel(x_var)
-        plt.ylabel(y_var)
-        plt.title(f"Scatter Plot of {y_var} vs {x_var}")
-        plt.legend()
+        x_label = self.column_name_mapping.get(x_var, x_var)
+        y_label = self.column_name_mapping.get(y_var, y_var)
+        hue_label = self.column_name_mapping.get(
+            hue_var, hue_var) if hue_var else None
+        plt.xlabel(x_label)
+        plt.ylabel(y_label)
+        plt.title(f"Scatter Plot of {y_label} vs {x_label}")
+        if hue_label:
+            plt.legend(title=hue_label)  # Set legend title if hue is used
+        else:
+            plt.legend()
         plt.show()
 
-    def plot_boxplot(self, column, by=None, title='Box Plot'):
+    def plot_boxplot(self, column, by=None):
         """
         Creates a box plot of a specified column, optionally grouped by another column.
 
@@ -185,10 +211,21 @@ class Visualisation:
             return
 
         plt.figure(figsize=(8, 6))
+
+        column_display = self.column_name_mapping.get(
+            column, column)  # get display name for column
+
         if by:
+            by_display = self.column_name_mapping.get(
+                by, by)  # get display name for by
             self.data.boxplot(column=[column], by=by)
+            plt.xlabel(by_display)
+            plt.ylabel(column_display)
+            plt.title(f"Box Plot of {column_display} by {by_display}")
+
         else:
             self.data.boxplot(column=[column])
+            plt.ylabel(column_display)
+            plt.title(f"Box Plot of {column_display}")
 
-        plt.title(title)
         plt.show()

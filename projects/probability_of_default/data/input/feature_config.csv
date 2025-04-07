@@ -1,13 +1,13 @@
-feature,type,target_variable,miss_val_strategy,miss_fill_value
-person_age,numerical,0,fill_median,
-person_income,numerical,0,fill_median,
-person_home_ownership,nominal,0,fill_mode,
-person_emp_length,numerical,0,fill_median,
-loan_intent,nominal,0,fill_value,a
-loan_grade,nominal,0,drop,
-loan_amnt,numerical,0,drop,
-loan_int_rate,numerical,0,drop,
-loan_status,nominal,1,drop,
-loan_percent_income,numerical,0,fill_median,
-cb_person_default_on_file,nominal,0,drop,
-cb_person_cred_hist_length,numerical,0,fill_median,
+feature,type,target_variable,miss_val_strategy,miss_fill_value,display_name
+person_age,numerical,0,fill_median,,Age
+person_income,numerical,0,fill_median,,Income
+person_home_ownership,nominal,0,fill_mode,,Home ownership
+person_emp_length,numerical,0,fill_median,,Employment length
+loan_intent,nominal,0,drop,,Loan intent
+loan_grade,nominal,0,drop,,Loan grade
+loan_amnt,numerical,0,drop,,Loan amount
+loan_int_rate,numerical,0,drop,,Interest rate
+loan_status,nominal,1,drop,,Loan status
+loan_percent_income,numerical,0,fill_median,,Debt to income
+cb_person_default_on_file,nominal,0,drop,,Defaulted before
+cb_person_cred_hist_length,numerical,0,fill_median,,Credit history length

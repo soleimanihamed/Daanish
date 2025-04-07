@@ -130,6 +130,7 @@ def main():
     all_features = feature_manager.get_all_features()
     missing_value_strategies = feature_manager.get_missing_value_strategies()
     missing_fill_values = feature_manager.get_missing_fill_values()
+    display_names = feature_manager.get_display_names()
 
     # print("Nominal Features:", nominal_features)
     # print("Ordinal Features:", ordinal_features)
@@ -138,12 +139,11 @@ def main():
     # print("All Features:", all_features)
     # print("Missing Value Strategies:", missing_value_strategies)
     # print("Missing Fill Values:", missing_fill_values)
+    # print("Display Names:", display_names)
 
     # ----------------------------------------------------------------------------------
-    # Step 6: Exploratory Data Analysis (EDA)
+    # Step 6: preliminary Exploratory Data Analysis (EDA) for Raw Data
 
-    # ----------------------------------
-    # Step 6_1: Descriptive Analysis for Raw Data
     eda_service = DescriptiveEDAAnalysis(main_df)
 
     # ----------------------------------
@@ -176,82 +176,67 @@ def main():
     # ----------------------------------
     # Print summaries of features into a json file
 
-    save_utils.save_json(eda_service.get_all_feature_summaries(),
-                         Construct_Output_Path(output_data_folder, 'features_descriptive_summary.json'))
+    # save_utils.save_json(eda_service.get_all_feature_summaries(),
+    #                      Construct_Output_Path(output_data_folder, 'features_descriptive_summary.json'))
 
-# ------------------------------------------
-    # Step 6_2: Analyze probability distributions for specific numeric variables
+# --------------------------------------
+    # Finds the best-fit probability distribution for a given feature list
 
     # Opionally the 'method' variable can be passed to determine the method for finding the best fit
-    # THis method accepts these values: 'sumsquare_error','aic' or 'bic'
+    # THis method supports these methods: 'sumsquare_error','aic' or 'bic'
     # By default it is set to 'sumsquare_error'
-
-    # distribution_results = eda_service.fit_best_distribution(
+    statistical_eda = StatisticalEDAAnalysis(main_df)
+    # distribution_results = statistical_eda.fit_best_distribution(
     #     ['person_age', 'loan_amnt'], method='sumsquare_error', common_distributions=True, timeout=120)
 
-    # -----------------------------------------
-
-    # Step 6_3: Exploratory Data Analysis (EDA) - Alternative to above with Sweetviz for Raw Data
-    # eda_service = SweetvizEDA(main_df)
-    # eda_service.generate_report(output_file=Construct_Output_Path(project_root, report_output_folder,
-    #                                                               'raw_sweetviz_report.html'))
-
-    # ----------------------------------------------------------------------------------
-    # Step 7: Visualisation
-    # Initialize Visualization class with the dataset
-    # Call the visualization function to plot distribution/histogram
-    viz = Visualisation(main_df)
-
-    # --------------------------------
-    # Plot fitted distributions
+    # --------------------------------------
+    # Plot the best-fit distributions
+    viz = Visualisation(main_df, display_names)
     # viz.plot_distributions(
     #     fitted_distributions=distribution_results, variables=numerical_features)
 
-    # --------------------------------
+    # --------------------------------------
     # Plot histograms
     # viz.plot_histogram(variables=numerical_features, orientation="vertical")
     # viz.plot_histogram(variables=nominal_features, orientation="horizontal")
 
-    # --------------------------------
+    # --------------------------------------
     # Scatter Plot
 
     # Scatter plot with color based on `loan_grade`
     # viz.plot_scatter(x_var="loan_amnt", y_var="loan_int_rate",
-    #                 hue_var="loan_grade")
+    #                  hue_var="loan_grade")
 
     # Scatter plot
     # viz.plot_scatter(x_var="person_age",
     #                  y_var="person_income", trendline=True)
 
-    # --------------------------------
+    # --------------------------------------
     # Box Plot
-    # viz.plot_boxplot(column='loan_percent_income', by='loan_status',
-    #                  title='Loan Percent Income by Loan Status')
-    # viz.plot_boxplot(column='loan_amnt', by='loan_grade',
-    #                  title='Loan Amount by Loan Grade')
 
-    # ----------------------------------------------------------------------------------
-    # Step 8: Statistical Analysis
-    eda = StatisticalEDAAnalysis(main_df)
+    # viz.plot_boxplot(column='loan_percent_income', by='loan_status')
+
+    # viz.plot_boxplot(column='loan_amnt', by='loan_grade')
+
+    # --------------------------------------
+    # Crosstab Analysis
 
     # For two variables
-    # crosstab_result_two = eda.crosstab(
-    #     "loan_intent", "loan_status", normalize="index")
+    crosstab_result_two = statistical_eda.crosstab(
+        "loan_intent", "loan_status", normalize="index")
 
-    # # For three variables
-    # crosstab_result_three = eda.crosstab_three_way("person_home_ownership",
-    #                                                "loan_status", "loan_grade")
+    # For three variables
+    crosstab_result_three = statistical_eda.crosstab_three_way("person_home_ownership",
+                                                               "loan_status", "loan_grade")
 
-    # Use SaveUtils to generate HTML tables
-    # save_utils = SaveUtils(
-    #     output_dir=Construct_Output_Path(output_data_folder, ""))
-    # save_utils.generate_styled_html_tables(
-    #     dataframes=[crosstab_result_two, crosstab_result_three],
-    #     filenames=["crosstab_two_styled.html", "crosstab_three_styled.html"]
-    # )
+    # generate HTML tables
+    save_utils.generate_styled_html_tables(
+        dataframes=[crosstab_result_two, crosstab_result_three],
+        filenames=["crosstab_two_styled.html", "crosstab_three_styled.html"]
+    )
 
     # ----------------------------------------------------------------------------------
-    # Step 9: Data Cleaning
+    # Step 7: Data Cleaning
     dp = DataPreprocessor(main_df)
 
     # -----------------------------------
@@ -295,6 +280,15 @@ def main():
     # print(outliers)
     # save_utils.save_dataframe_to_csv(
     #     outliers, "outliers_isolation_forest.csv", overwrite=True)
+
+    # ----------------------------------------------------------------------------------
+
+    # Exploratory Data Analysis (EDA) with Sweetviz for Raw Data
+    # eda_service = SweetvizEDA(main_df)
+    # eda_service.generate_report(output_file=Construct_Output_Path(project_root, report_output_folder,
+    #                                                               'raw_sweetviz_report.html'))
+
+    # ----------------------------------------------------------------------------------
 
 
 if __name__ == "__main__":

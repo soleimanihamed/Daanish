@@ -31,6 +31,7 @@ class FeatureManager:
         self.all_features = []
         self.missing_value_strategies = {}  # Dictionary to store missing value strategies
         self.missing_fill_values = {}      # Dictionary to store missing fill values
+        self.display_names = {}             # Dictionary to store display names
 
         if source_type == 'csv' and source_path:
             self._load_from_csv(source_path)
@@ -87,6 +88,9 @@ class FeatureManager:
             if 'miss_fill_value' in df.columns and pd.notna(row['miss_fill_value']):
                 self.missing_fill_values[row['feature']
                                          ] = row['miss_fill_value']
+        # Load display names if available
+        if 'display_name' in df.columns:
+            self.display_names = dict(zip(df['feature'], df['display_name']))
 
     def get_nominal_features(self):
         """Return a list of nominal features."""
@@ -115,3 +119,7 @@ class FeatureManager:
     def get_missing_fill_values(self):
         """Return a dictionary of missing fill values."""
         return self.missing_fill_values
+
+    def get_display_names(self):
+        """Return a dictionary of display names."""
+        return self.display_names

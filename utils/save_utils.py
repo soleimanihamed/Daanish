@@ -35,25 +35,25 @@ class SaveUtils:
         except Exception as e:
             print(f"Error occurred while saving data: {e}")
 
-    def save_html_report(self, html_content, filename, overwrite=True):
+    def save_html_report(self, html_content, full_path_name, overwrite=True):
         """
         Saves HTML content to an HTML file.
 
         Args:
             html_content (str): HTML content to save.
-            filename (str): Name of the HTML file to save.
+            full_path_name (str): Path and name of the HTML file to save.
             overwrite (bool): Whether to overwrite the file if it exists. Default is True.
         """
-        filepath = os.path.join(self.output_dir, filename)
+
         try:
-            if os.path.exists(filepath) and not overwrite:
+            if os.path.exists(full_path_name) and not overwrite:
                 print(
-                    f"File {filename} already exists. Set overwrite=True to overwrite it.")
+                    f"File {full_path_name} already exists. Set overwrite=True to overwrite it.")
                 return
 
-            with open(filepath, 'w', encoding='utf-8') as file:
+            with open(full_path_name, 'w', encoding='utf-8') as file:
                 file.write(html_content)
-            print(f"HTML report saved to {filename} successfully.")
+            print(f"HTML report saved to {full_path_name} successfully.")
         except Exception as e:
             print(f"Error occurred while saving HTML report: {e}")
 

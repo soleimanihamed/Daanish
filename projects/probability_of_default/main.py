@@ -1,16 +1,18 @@
 # projects\probability_of_default\main.py
 
 import os
-from utils.config_utils import initialize_daanish,  load_project_config
-from utils.eda_descriptive_analysis import DescriptiveEDAAnalysis
-from utils.eda_sweetviz import SweetvizEDA
-from utils.save_utils import SaveUtils
-from utils.visualisation import Visualisation
-from utils.feature_manager import FeatureManager
-from utils.main_dataset_manager import MainDatasetManager
-from utils.eda_statistical_analysis import StatisticalEDAAnalysis
-from utils.data_preprocessor import DataPreprocessor
+from utils.core.config import initialize_daanish,  load_project_config, get_database_config
+from utils.eda.descriptive import DescriptiveAnalysis
+from utils.eda.sweetviz import SweetvizEDA
+from utils.core.save_manager import SaveUtils
+from utils.eda.visualisation import Visualisation
+from utils.core.feature_manager import FeatureManager
 from utils.generate_reports import ReportGenerator
+from utils.viz.display import DisplayUtils
+from utils.data_io.loader import load_data
+from utils.eda.statistical import StatisticalAnalysis
+from utils.preprocessing.missing_values import MissingValueHandler
+from utils.preprocessing.outlier_treatment import OutlierHandler
 
 
 def load_project_configuration():
@@ -27,10 +29,10 @@ def load_project_configuration():
     config = {
         'input_data_folder': project_config.get('paths', 'input_data_folder'),
         'output_data_folder': project_config.get('paths', 'output_data_folder'),
-        'report_output_folder': project_config.get('paths', 'report_output_folder'),
         'main_dataset': project_config.get('input_files', 'main_dataset'),
         'features_attributes': project_config.get('input_files', 'features_attributes'),
         'source_type': project_config.get('datasource_type', 'source_type'),
+        'excel_sheet_name': project_config.get('datasource_type', 'excel_sheet_name'),
         'model_features_query': project_config.get('db_queries', 'model_features_query'),
         'main_dataset_query': project_config.get('db_queries', 'main_dataset_query')
     }
@@ -87,30 +89,24 @@ def main():
     # Step 3: Access configuration values
     input_data_folder = project_config['input_data_folder']
     output_data_folder = project_config['output_data_folder']
-    report_output_folder = project_config['report_output_folder']
     main_dataset = project_config['main_dataset']
     model_features = project_config['features_attributes']
     source_type = project_config['source_type']
+    excel_sheet_name = project_config['excel_sheet_name']
     model_features_query = project_config['model_features_query']
     main_dataset_query = project_config['main_dataset_query']
-
-    # ------------------------------
-    save_utils = SaveUtils(
-        output_dir=Construct_Output_Path(output_data_folder, ""))
 
     # ----------------------------------------------------------------------------------
 
     # Step 4: Load main dataset
 
-    dataset_manager = MainDatasetManager(
+    main_df = load_data(
         source_type=source_type,
-        source_path=Construct_Input_Path(input_data_folder, main_dataset),
-        global_config=global_config,
-        query=main_dataset_query
-    )
+        input_path=Construct_Input_Path(input_data_folder, main_dataset),
+        query=main_dataset_query,
+        global_config=global_config
 
-    # Get the dataset
-    main_df = dataset_manager.get_data()
+    )
 
     # ----------------------------------------------------------------------------------
 
@@ -118,7 +114,7 @@ def main():
 
     feature_manager = FeatureManager(
         source_type=source_type,
-        source_path=Construct_Input_Path(input_data_folder, model_features),
+        input_path=Construct_Input_Path(input_data_folder, model_features),
         global_config=global_config,
         query=model_features_query
     )
@@ -144,24 +140,44 @@ def main():
     # ----------------------------------------------------------------------------------
     # Step 6: preliminary Exploratory Data Analysis (EDA) for Raw Data
 
-    eda_service = DescriptiveEDAAnalysis(main_df)
+    eda_service = DescriptiveAnalysis(main_df)
 
     # ----------------------------------
     # Print summaries of data samples
-    # print(eda_service.get_data_samples(10))
+    DisplayUtils.show_dataframe_popup(
+        eda_service.get_data_samples(5), title="Sample Data")
 
     # ----------------------------------
-    # Print summaries of dataset
-    # ReportGenerator.print_dataset_summary(eda_service.get_dataset_summary())
+    # Print dataset summary
+    # dataset_summary = eda_service.get_dataset_summary()
+
+    # Show in console
+    # ReportGenerator.print_dataset_summary(dataset_summary)
+
+    # Show in a Pop-up window
+    # DisplayUtils.show_summary(dataset_summary)
 
     # ----------------------------------
-    # Print summaries of feature(s) into console
+    # Print/Display/Save summaries of feature(s)
 
-    # ReportGenerator.print_high_level_summary(
-    #     eda_service.get_all_feature_summaries())
+    single_feature_summary = eda_service.get_feature_summary("loan_amnt")
+    All_features_summary = eda_service.get_all_feature_summaries()
 
-    # ----------------------------------
-    # Print summaries of feature(s) into a csv file
+    # ---------
+    # Display in a pop up window
+    # DisplayUtils.show_feature_summary_popup(
+    #     "loan_amnt", single_feature_summary)
+    # DisplayUtils.show_all_feature_summaries_popup(All_features_summary)
+
+    # ---------
+    # Print in the console
+    # DisplayUtils.print_feature_summary("loan_amnt", single_feature_summary)
+    DisplayUtils.print_high_level_summary(All_features_summary)
+
+    # ---------
+    # Save into a csv file
+    save_utils = SaveUtils(
+        output_dir=Construct_Output_Path(output_data_folder, ""))
 
     # Create csv output for descriptive analysis of a specific feature
     # feature_name = 'person_age'
@@ -185,7 +201,7 @@ def main():
     # Opionally the 'method' variable can be passed to determine the method for finding the best fit
     # THis method supports these methods: 'sumsquare_error','aic' or 'bic'
     # By default it is set to 'sumsquare_error'
-    statistical_eda = StatisticalEDAAnalysis(main_df)
+    statistical_eda = StatisticalAnalysis(main_df)
     # distribution_results = statistical_eda.fit_best_distribution(
     #     ['person_age', 'loan_amnt'], method='sumsquare_error', common_distributions=True, timeout=120)
 
@@ -222,22 +238,22 @@ def main():
     # Crosstab Analysis
 
     # For two variables
-    crosstab_result_two = statistical_eda.crosstab(
-        "loan_intent", "loan_status", normalize="index")
+    # crosstab_result_two = statistical_eda.crosstab(
+    #     "loan_intent", "loan_status", normalize="index")
 
     # For three variables
-    crosstab_result_three = statistical_eda.crosstab_three_way("person_home_ownership",
-                                                               "loan_status", "loan_grade")
+    # crosstab_result_three = statistical_eda.crosstab_three_way("person_home_ownership",
+    #                                                            "loan_status", "loan_grade")
 
     # generate HTML tables
-    save_utils.generate_styled_html_tables(
-        dataframes=[crosstab_result_two, crosstab_result_three],
-        filenames=["crosstab_two_styled.html", "crosstab_three_styled.html"]
-    )
+    # save_utils.generate_styled_html_tables(
+    #     dataframes=[crosstab_result_two, crosstab_result_three],
+    #     filenames=["crosstab_two_styled.html", "crosstab_three_styled.html"]
+    # )
 
     # ----------------------------------------------------------------------------------
     # Step 7: Data Cleaning
-    dp = DataPreprocessor(main_df)
+    dp = MissingValueHandler(main_df)
 
     # -----------------------------------
     # Handle missing values

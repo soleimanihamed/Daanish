@@ -1,4 +1,5 @@
-# Visualisation Class
+# uitls/eda/Visualisation Class
+
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns

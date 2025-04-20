@@ -1,9 +1,11 @@
-# daanish/config_utils.py
+# utils/core/config.py
+
 import os
 import sys
 from configparser import ConfigParser
 import logging
 from dotenv import load_dotenv
+from pathlib import Path
 
 
 # Set up logging
@@ -19,22 +21,37 @@ def load_config():
     # Load environment variables from .env
     load_dotenv()
 
-    # First, check if CONFIG_PATH is set in the environment
-    config_path = os.getenv('CONFIG_PATH')
+    # 1. Check if CONFIG_PATH env var is set
+    env_path = os.getenv('CONFIG_PATH')
+    if env_path and Path(env_path).exists():
+        config_path = Path(env_path)
+    else:
+        # 2. Search parent directories for config.ini
+        try:
+            current_dir = Path(__file__).resolve()
+        except NameError:
+            # __file__ is not defined in Jupyter, fallback to cwd
+            current_dir = Path(os.getcwd()).resolve()
 
-    # If CONFIG_PATH is not set, look for config.ini in the project root
+        config_path = None
+        for parent in current_dir.parents:
+            possible = parent / "config.ini"
+            if possible.exists():
+                config_path = possible
+                break
+
+    # 3. If not found, raise an error
     if not config_path:
-        project_root = os.path.abspath(os.path.join(
-            os.path.dirname(__file__), ".."))  # Moves up one directory
-        config_path = os.path.join(project_root, "config.ini")
+        raise FileNotFoundError(
+            "config.ini not found in parent directories and CONFIG_PATH is not set.")
 
-    # Load global config from config.ini
+    # 4. Load the config
     global_config = ConfigParser()
-    global_config.read(config_path)
+    global_config.read(str(config_path))
 
-    # Validate configuration
     if not global_config.sections():
-        raise FileNotFoundError(f"config.ini not found at {config_path}")
+        raise FileNotFoundError(
+            f"config.ini was found at {config_path}, but it's empty or unreadable.")
 
     return global_config
 
@@ -102,8 +119,7 @@ def get_database_config(global_config):
         'server': global_config.get('DATABASE', 'server', fallback=None),
         'database': global_config.get('DATABASE', 'database', fallback=None),
         'username': global_config.get('DATABASE', 'username', fallback=None),
-        'password': global_config.get('DATABASE', 'password', fallback=None),
-        'use_database': global_config.getboolean('DATABASE', 'use_database', fallback=False)
+        'password': global_config.get('DATABASE', 'password', fallback=None)
     }
 
     # Check if any required field is missing or empty

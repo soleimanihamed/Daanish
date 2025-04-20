@@ -1,11 +1,11 @@
-# eda_descriptive_analysis.py
-from utils.save_utils import SaveUtils
-from tabulate import tabulate
+# uitls/eda/descriptive.py
+
+import io
 import pandas as pd
-import numpy as np
+from utils.core.save_manager import SaveUtils
 
 
-class DescriptiveEDAAnalysis:
+class DescriptiveAnalysis:
     def __init__(self, data):
         self.data = data
         self.save_utils = SaveUtils()  # Initialize SaveUtils for saving reports
@@ -20,14 +20,19 @@ class DescriptiveEDAAnalysis:
         - Unique values per column
         """
 
-        info = {
-            "info": str(self.data.info(verbose=False, memory_usage=False)),
+        # Capture the printed output of data.info()
+        buffer = io.StringIO()
+        self.data.info(buf=buffer, verbose=False, memory_usage=False)
+        info_str = buffer.getvalue()
+
+        summary = {
+            "info": info_str,
             "duplicate_count": self.data.duplicated().sum(),
             "missing_values": self.data.isnull().sum().to_dict(),
             "missing_percentage": (self.data.isnull().sum() / len(self.data) * 100).to_dict(),
             "unique_values": self.data.nunique().to_dict()
         }
-        return info
+        return summary
 
     def get_data_samples(self, sample_number=5):
         """Returns a sample of the DataFrame."""
@@ -36,9 +41,11 @@ class DescriptiveEDAAnalysis:
     def get_feature_summary(self, feature):
         """Returns extended descriptive statistics for a feature."""
         feature_data = self.data[feature]
-        summary = feature_data.describe().to_dict()
+        summary = {}
 
-        if pd.api.types.is_numeric_dtype(feature_data):
+        if pd.api.types.is_numeric_dtype(feature_data) and not pd.api.types.is_bool_dtype(feature_data):
+            numeric_data = pd.to_numeric(feature_data, errors='coerce')
+            summary = numeric_data.describe().to_dict()
             summary.update({
                 "skewness": float(feature_data.skew()),
                 "kurtosis": float(feature_data.kurt()),
@@ -75,6 +82,10 @@ class DescriptiveEDAAnalysis:
                 "mode": int(feature_data.mode().iloc[0]),
                 "mode_percentage": float((feature_data == feature_data.mode().iloc[0]).mean() * 100)
             })
+        else:
+            summary = {
+                "error": f"Feature {feature} has unsupported dtype {feature_data.dtype}"
+            }
         return summary
 
     def get_all_feature_summaries(self):

@@ -2,7 +2,7 @@
 
 import os
 import sys
-from utils.config_utils import initialize_daanish
+from utils.core.config import initialize_daanish
 
 # Add Daanish root to Python path
 daanish_root = os.path.abspath(os.path.dirname(__file__))

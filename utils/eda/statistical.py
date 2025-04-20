@@ -1,11 +1,12 @@
-# uitls/eda_statistical_analysis.py
+# uitls/eda/statistical.py
+
 from scipy import stats
 from dython.nominal import associations
 import pandas as pd
 from fitter import Fitter
 
 
-class StatisticalEDAAnalysis:
+class StatisticalAnalysis:
     def __init__(self, data):
         self.data = data
 

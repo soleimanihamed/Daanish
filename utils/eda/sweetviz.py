@@ -1,6 +1,6 @@
-# utils/eda_sweetviz.py
+# uitls/eda/sweetviz.py
 
-from utils.save_utils import SaveUtils
+from utils.core.save_manager import SaveUtils
 import sweetviz as sv
 import os
 

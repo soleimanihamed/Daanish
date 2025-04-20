@@ -1,4 +1,4 @@
-# utils/save_utils.py
+# utils/core/save_manager.py
 
 import os
 import pandas as pd
@@ -34,6 +34,28 @@ class SaveUtils:
             print(f"Data saved to {full_path_name} successfully.")
         except Exception as e:
             print(f"Error occurred while saving data: {e}")
+
+    def save_dataframe_to_excel(self, df, full_path_name, sheet_name='Sheet1', overwrite=True):
+        """
+        Saves a pandas DataFrame to an Excel file with the given sheet name.
+
+        Args:
+            df (pandas.DataFrame): DataFrame to save.
+            full_path_name (str): Full path and filename for the Excel file.
+            sheet_name (str): Name of the sheet in the Excel file.
+            overwrite (bool): Whether to overwrite the file if it exists.
+        """
+        try:
+            if os.path.exists(full_path_name) and not overwrite:
+                print(
+                    f"File {full_path_name} already exists. Set overwrite=True to overwrite it.")
+                return
+
+            df.to_excel(full_path_name, sheet_name=sheet_name,
+                        index=False, engine='openpyxl')
+            print(f"Excel file saved to {full_path_name} successfully.")
+        except Exception as e:
+            print(f"Error occurred while saving Excel file: {e}")
 
     def save_html_report(self, html_content, full_path_name, overwrite=True):
         """

@@ -15,22 +15,16 @@ class DataReader:
     """
 
     @staticmethod
-    def read_csv(filepath, field_name=None, index_col=None, parse_dates=True):
+    def read_csv(filepath, **kwargs):
         try:
-            df = pd.read_csv(filepath, index_col=index_col,
-                             parse_dates=parse_dates)
-            if field_name:
-                if field_name not in df.columns:
-                    raise ValueError(f"Field '{field_name}' not found in CSV.")
-                return df[field_name]
-            return df
+            return pd.read_csv(filepath, **kwargs)
         except Exception as e:
             print(f"Error reading CSV: {e}")
 
     @staticmethod
-    def read_excel(filepath, sheet_name=0, index_col=None, parse_dates=True):
+    def read_excel(filepath, **kwargs):
         try:
-            return pd.read_excel(filepath, sheet_name=sheet_name, index_col=index_col, parse_dates=parse_dates)
+            return pd.read_excel(filepath, **kwargs)
         except Exception as e:
             print(f"Error reading Excel: {e}")
 

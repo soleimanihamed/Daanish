@@ -7,6 +7,20 @@ from fitter import Fitter
 
 
 class StatisticalAnalysis:
+    """
+    StatisticalAnalysis Class
+
+    This class provides a collection of statistical methods designed to support exploratory data analysis (EDA). 
+    It includes tools for:
+
+    - Performing normality tests (e.g., Shapiro-Wilk)
+    - Fitting the best probability distribution to numerical features
+    - Computing correlation between variables
+    - Creating two-way and three-way cross-tabulations for categorical variables
+
+    These methods help uncover underlying data patterns and relationships for both numerical and categorical features.
+    """
+
     def __init__(self, data):
         self.data = data
 

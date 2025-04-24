@@ -150,10 +150,6 @@
         }
     },
     "person_home_ownership": {
-        "count": 32581,
-        "unique": 4,
-        "top": "RENT",
-        "freq": 16446,
         "missing_values": 0,
         "missing_percentage": 0.0,
         "distinct_count": 4,
@@ -241,10 +237,6 @@
         }
     },
     "loan_intent": {
-        "count": 32581,
-        "unique": 6,
-        "top": "EDUCATION",
-        "freq": 6453,
         "missing_values": 0,
         "missing_percentage": 0.0,
         "distinct_count": 6,
@@ -259,10 +251,6 @@
         }
     },
     "loan_grade": {
-        "count": 32581,
-        "unique": 7,
-        "top": "A",
-        "freq": 10777,
         "missing_values": 0,
         "missing_percentage": 0.0,
         "distinct_count": 7,
@@ -539,10 +527,6 @@
         }
     },
     "cb_person_default_on_file": {
-        "count": 32581,
-        "unique": 2,
-        "top": "N",
-        "freq": 26836,
         "missing_values": 0,
         "missing_percentage": 0.0,
         "distinct_count": 2,

@@ -172,7 +172,7 @@ def main():
     # ---------
     # Print in the console
     # DisplayUtils.print_feature_summary("loan_amnt", single_feature_summary)
-    DisplayUtils.print_high_level_summary(All_features_summary)
+    # DisplayUtils.print_high_level_summary(All_features_summary)
 
     # ---------
     # Save into a csv file

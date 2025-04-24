@@ -19,10 +19,11 @@ class RandomSimulator:
         Number of simulations to generate (default is 10,000).
     """
 
-    def __init__(self, parameters, num_simulations=10000):
-        self.parameters = np.array(parameters)
+    def __init__(self, parameters=None, num_simulations=10000):
+        self.parameters = np.array(
+            parameters) if parameters is not None else None
         self.num_simulations = num_simulations
-        self.n = len(self.parameters)
+        self.n = len(self.parameters) if self.parameters is not None else None
 
     def simulate_poisson(self):
         """
@@ -33,13 +34,17 @@ class RandomSimulator:
         pandas.DataFrame
             A DataFrame containing Poisson-distributed simulations for each variable.
         """
+        if self.parameters is None:
+            raise ValueError(
+                "Poisson simulation requires parameters (e.g., lambda values).")
+
         A = np.ones((self.num_simulations, self.n)) * self.parameters
         poisson_draws = np.random.poisson(A)
         df_poisson = pd.DataFrame(poisson_draws, columns=[
                                   f"Variable_{i+1}" for i in range(self.n)])
         return df_poisson
 
-    def simulate_normal(self, target_skew=0, target_kurt=3):
+    def simulate_normal(self, target_skew=0, target_kurt=3, num_variables=None):
         """
         Simulates uncorrelated normal distributions with optional adjustment for skewness and kurtosis.
 
@@ -49,23 +54,36 @@ class RandomSimulator:
             Desired skewness for each variable (default is 0, meaning symmetric).
         target_kurt : float, optional
             Desired kurtosis for each variable (default is 3, i.e., normal kurtosis).
+        num_variables : int, optional
+            Number of variables to simulate. Required if `parameters` are not provided.
 
         Returns
         -------
         pandas.DataFrame
-            A DataFrame containing simulated values adjusted for skewness and kurtosis.
+            A DataFrame containing uncorrelated simulated values adjusted for skewness and kurtosis.
         """
-        random_matrix = self._generate_uncorrelated_random_with_skew_kurt(
-            self.num_simulations, self.n, target_skew, target_kurt
+
+        if self.parameters is not None:
+            n_vars = self.n
+        elif num_variables is not None:
+            n_vars = num_variables
+        else:
+            raise ValueError(
+                "Provide either `parameters` or `num_variables` for normal simulation.")
+
+        random_matrix = self._generate_uncorrelated_random(
+            self.num_simulations, n_vars, target_skew, target_kurt
         )
 
-        # Scale by parameters (e.g., standard deviations, volatilities, etc.)
-        adjusted_matrix = random_matrix * self.parameters
-        df_normal = pd.DataFrame(adjusted_matrix, columns=[
-                                 f"Variable_{i+1}" for i in range(self.n)])
+        # If parameters are provided, scale the results by parameters (e.g., standard deviations, volatilities, etc.)
+        if self.parameters is not None:
+            random_matrix = random_matrix * self.parameters
+
+        df_normal = pd.DataFrame(random_matrix, columns=[
+                                 f"Variable_{i+1}" for i in range(n_vars)])
         return df_normal
 
-    def _generate_uncorrelated_random_with_skew_kurt(self, num_samples, num_variables, target_skew, target_kurt):
+    def _generate_uncorrelated_random(self, num_samples, num_variables, target_skew, target_kurt):
         """
         Internal method for generating uncorrelated standard normal variables
         with desired skewness and kurtosis.

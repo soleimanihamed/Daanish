@@ -218,7 +218,7 @@ class CorrelationAnalyzer:
         return results
 
     def correlation_matrix(self, num_method="pearson", cat_method="cramers_v",
-                           cat_num_method="correlation_ratio"):
+                           cat_num_method="correlation_ratio", return_matrix=False):
         """
         Calculates and returns a unified table of pairwise correlations/associations
         between all variables.
@@ -230,11 +230,12 @@ class CorrelationAnalyzer:
                 Defaults to "cramers_v".
             cat_num_method (str, optional): The method for categorical-numerical association.
                 Defaults to "correlation_ratio".
+            return_matrix (bool, optional): Whether to also return a symmetric matrix form. Defaults to False.
 
         Returns:
             pd.DataFrame: A DataFrame with columns 'Var1', 'Var2', and 'Correlation',
-                          sorted by the absolute value of the correlation in
-                          descending order.
+                        sorted by the absolute value of the correlation in descending order.
+            pd.DataFrame (optional): A symmetric correlation matrix if return_matrix=True.
         """
 
         corr_results = self._calculate_correlations(num_method=num_method, cat_method=cat_method,
@@ -266,9 +267,24 @@ class CorrelationAnalyzer:
                 if pd.notna(corr):
                     records.append((var1, var2, corr))
 
-        unified_df = pd.DataFrame(
-            records, columns=["Var1", "Var2", "Correlation"])
-        return unified_df.sort_values(by="Correlation", key=abs, ascending=False).reset_index(drop=True)
+        unified_df = pd.DataFrame(records, columns=["Var1", "Var2", "Correlation"]).sort_values(
+            by="Correlation", key=abs, ascending=False).reset_index(drop=True)
+
+        if return_matrix:
+            # Build symmetric matrix
+            features = pd.unique(unified_df[["Var1", "Var2"]].values.ravel())
+            matrix = pd.DataFrame(
+                index=features, columns=features, dtype=float)
+
+            for _, row in unified_df.iterrows():
+                matrix.loc[row["Var1"], row["Var2"]] = row["Correlation"]
+                matrix.loc[row["Var2"], row["Var1"]] = row["Correlation"]
+
+            np.fill_diagonal(matrix.values, 1.0)
+
+            return unified_df, matrix
+
+        return unified_df
 
     def get_high_correlations(self, num_method="pearson", cat_method="cramers_v",
                               cat_num_method="correlation_ratio", threshold=0.7):

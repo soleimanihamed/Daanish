@@ -31,6 +31,8 @@ class FeatureManager:
         self.missing_value_strategies = {}  # Dictionary to store missing value strategies
         self.missing_fill_values = {}      # Dictionary to store missing fill values
         self.display_names = {}             # Dictionary to store display names
+        self.outlier_value_strategies = {}  # Dictionary to store outlier value strategies
+        self.outlier_fill_values = {}      # Dictionary to store outlier fill values
 
         df = load_data(source_type, input_path=input_path,
                        query=query, global_config=global_config)
@@ -70,6 +72,15 @@ class FeatureManager:
         if 'display_name' in df.columns:
             self.display_names = dict(zip(df['feature'], df['display_name']))
 
+        # Load outlier value strategies
+        if 'outlier_val_strategy' in df.columns:
+            self.outlier_value_strategies = dict(
+                zip(df['feature'], df['outlier_val_strategy']))
+
+        if 'outlier_fill_value' in df.columns:
+            self.outlier_fill_values = dict(
+                zip(df['feature'], df['outlier_fill_value']))
+
     def get_nominal_features(self):
         """Return a list of nominal features."""
         return self.nominal_features
@@ -101,3 +112,11 @@ class FeatureManager:
     def get_display_names(self):
         """Return a dictionary of display names."""
         return self.display_names
+
+    def get_outlier_value_strategies(self):
+        """Return a dictionary of outlier value strategies."""
+        return self.outlier_value_strategies
+
+    def get_outlier_fill_values(self):
+        """Return a dictionary of outlier fill values."""
+        return self.outlier_fill_values

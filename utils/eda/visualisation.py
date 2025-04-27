@@ -230,3 +230,39 @@ class Visualisation:
             plt.title(f"Box Plot of {column_display}")
 
         plt.show()
+
+    @staticmethod
+    def plot_heatmap_matrix(matrix: pd.DataFrame, title="Matrix Heatmap", cmap="coolwarm", annot=True):
+        """
+        Plots a heatmap for any given square matrix.
+
+        Args:
+            matrix (pd.DataFrame): A square matrix (e.g., correlation matrix).
+            title (str): Title of the plot.
+            cmap (str): Color map to use.
+            annot (bool): Whether to annotate the heatmap with values.
+        """
+        if matrix.empty:
+            print("Empty matrix provided for plotting.")
+            return
+
+        # Dynamically adjust figure size based on number of features
+        n_features = matrix.shape[0]
+        size = max(8, min(2 + n_features * 0.5, 20))
+        figsize = (size, size)
+
+        plt.figure(figsize=figsize)
+        sns.heatmap(matrix,
+                    annot=annot,
+                    fmt=".2f",
+                    cmap=cmap,
+                    center=0,
+                    square=True,
+                    cbar_kws={"shrink": .8},
+                    linewidths=0.5,
+                    linecolor='gray')
+        plt.title(title)
+        plt.xticks(rotation=45, ha='right')
+        plt.yticks(rotation=0)
+        plt.tight_layout()
+        plt.show()

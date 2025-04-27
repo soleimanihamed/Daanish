@@ -127,6 +127,8 @@ def main():
     missing_value_strategies = feature_manager.get_missing_value_strategies()
     missing_fill_values = feature_manager.get_missing_fill_values()
     display_names = feature_manager.get_display_names()
+    outlier_value_strategies = feature_manager.get_outlier_value_strategies()
+    outlier_fill_values = feature_manager.get_outlier_fill_values()
 
     # print("Nominal Features:", nominal_features)
     # print("Ordinal Features:", ordinal_features)
@@ -136,6 +138,8 @@ def main():
     # print("Missing Value Strategies:", missing_value_strategies)
     # print("Missing Fill Values:", missing_fill_values)
     # print("Display Names:", display_names)
+    # print("Outlier Value Strategies:", outlier_value_strategies)
+    # print("Outlier Fill Values:", outlier_fill_values)
 
     # ----------------------------------------------------------------------------------
     # Step 6: preliminary Exploratory Data Analysis (EDA) for Raw Data

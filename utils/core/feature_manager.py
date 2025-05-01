@@ -2,6 +2,7 @@
 
 import pandas as pd
 from utils.data_io.loader import load_data
+import json
 
 
 class FeatureManager:
@@ -33,6 +34,14 @@ class FeatureManager:
         self.display_names = {}             # Dictionary to store display names
         self.outlier_value_strategies = {}  # Dictionary to store outlier value strategies
         self.outlier_fill_values = {}      # Dictionary to store outlier fill values
+        # Dictionary to store outlier detection strategies
+        self.outlier_detection_strategies = {}
+        # Dictionary to store outlier strategies parameters
+        self.outlier_detection_params = {}
+        # Dictionary to store imputation methods to treat outliers
+        self.outlier_imputation_methods = {}
+        # Dictionary to store custom value if outlier imputation method is 'Custom'
+        self.outlier_imputation_values = {}
 
         df = load_data(source_type, input_path=input_path,
                        query=query, global_config=global_config)
@@ -81,6 +90,30 @@ class FeatureManager:
             self.outlier_fill_values = dict(
                 zip(df['feature'], df['outlier_fill_value']))
 
+        # Load outlier detection strategy
+        if 'outlier_strategy' in df.columns:
+            self.outlier_detection_strategies = dict(
+                zip(df['feature'], df['outlier_strategy'])
+            )
+
+        # Load outlier detection params (as strings, to be parsed later)
+        if 'outlier_params' in df.columns:
+            self.outlier_detection_params = dict(
+                zip(df['feature'], df['outlier_params'])
+            )
+
+        # Load outlier imputation method (e.g., fill_mean, drop)
+        if 'outlier_imputation_method' in df.columns:
+            self.outlier_imputation_methods = dict(
+                zip(df['feature'], df['outlier_imputation_method'])
+            )
+
+        # Load outlier imputation value (if required)
+        if 'outlier_imputation_value' in df.columns:
+            self.outlier_imputation_values = dict(
+                zip(df['feature'], df['outlier_imputation_value'])
+            )
+
     def get_nominal_features(self):
         """Return a list of nominal features."""
         return self.nominal_features
@@ -120,3 +153,54 @@ class FeatureManager:
     def get_outlier_fill_values(self):
         """Return a dictionary of outlier fill values."""
         return self.outlier_fill_values
+
+    def get_outlier_detection_strategies(self):
+        return self.outlier_detection_strategies
+
+    def get_outlier_detection_params(self):
+        return self.outlier_detection_params
+
+    def get_outlier_imputation_methods(self):
+        return self.outlier_imputation_methods
+
+    def get_outlier_imputation_values(self):
+        return self.outlier_imputation_values
+
+    def _parse_outlier_params(self):
+        """Parses outlier_params JSON strings per feature into dictionaries."""
+        parsed = {}
+        for feature, param_str in self.outlier_detection_params.items():
+            try:
+                parsed[feature] = json.loads(param_str) if param_str else {}
+            except Exception:
+                print(
+                    f"Warning: invalid JSON in outlier_params for feature '{feature}'")
+                parsed[feature] = {}
+        return parsed
+
+    def get_outlier_config_bundle(self):
+        """
+        Builds a full config dictionary for outlier detection and treatment.
+
+        Returns:
+            dict: {
+                feature: {
+                    "method": str,              # detection method
+                    "params": dict,             # detection parameters
+                    "imputation_method": str,   # how to handle outliers
+                    "imputation_value": any     # optional value if method is "replace_value"
+                }
+            }
+        """
+        parsed_params = self._parse_outlier_params()
+        config = {}
+
+        for feature, method in self.outlier_detection_strategies.items():
+            config[feature] = {
+                "method": method,
+                "params": parsed_params.get(feature, {}),
+                "imputation_method": self.outlier_imputation_methods.get(feature, "none"),
+                "imputation_value": self.outlier_imputation_values.get(feature)
+            }
+
+        return config

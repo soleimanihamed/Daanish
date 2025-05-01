@@ -9,14 +9,59 @@ class OutlierHandler:
     def __init__(self, data):
         self.data = data.copy()
 
-    def handle(self, features, strategies, outliers_df, replace_values=None):
+    def handle_from_config(self, outlier_config_bundle, outliers_df):
         """
-        Handle outliers for multiple features using individual strategies.
+        Simplified handler using unified configuration structure.
+
+        Args:
+            outlier_config_bundle (dict): Dictionary with structure:
+                {
+                    feature_name: {
+                        "method": ...,  # detection method (ignored here)
+                        "params": ...,  # detection params (ignored here)
+                        "imputation_method": str,
+                        "imputation_value": optional custom value
+                    },
+                    ...
+                }
+            outliers_df (pd.DataFrame): DataFrame of detected outlier records.
+
+        Returns:
+            pd.DataFrame: Outlier-imputed records.
+            pd.DataFrame: Cleaned dataset.
+        """
+
+        invalid = {None, "", "nan", "NaN", "NAN"}
+
+        features = list(outlier_config_bundle.keys())
+
+        imputation_methods = {
+            f: (cfg.get("imputation_method") if cfg.get(
+                "imputation_method") not in invalid else "keep")
+            for f, cfg in outlier_config_bundle.items()
+        }
+
+        imputation_values = {
+            f: cfg.get("imputation_value")
+            for f, cfg in outlier_config_bundle.items()
+            if imputation_methods[f] == "replace_value"
+        }
+
+        return self.handle(
+            features,
+            imputation_method=imputation_methods,
+            outliers_df=outliers_df,
+            replace_values=imputation_values
+        )
+
+    def handle(self, features, imputation_method, outliers_df, replace_values=None):
+        """
+        Handle outliers for multiple features using individual imputation method.
 
         Args:
             features (list): List of feature names.
-            strategies (list or dict): Strategy per feature. Can be list (same length) or dict.
-                                    Strategies include:
+            imputation_method (list or dict): Imputation method per feature. Can be list (same length) or dict.
+                                    Imputation_ methods include:
                                         - "remove"           : Remove records containing outliers.
                                         - "replace_mean"     : Replace outliers with the mean.
                                         - "replace_median"   : Replace outliers with the median.
@@ -39,24 +84,25 @@ class OutlierHandler:
 
         affected_features_dict = {idx: [] for idx in outliers_df.index}
         original_record_count = len(self.data)
-        imputed_record_count = 0
 
-        if isinstance(strategies, list):
-            if len(strategies) != len(features):
+        if isinstance(imputation_method, list):
+            if len(imputation_method) != len(features):
                 raise ValueError(
-                    "Length of strategies list must match length of features list.")
-            for feature, strategy in zip(features, strategies):
-                self._apply_outlier_strategy(
-                    feature, strategy, outliers_df, replace_values, affected_features_dict)
-        elif isinstance(strategies, dict):
+                    "Length of imputation method list must match length of features list.")
+            for feature, method in zip(features, imputation_method):
+                self._apply_outlier_imputation_method(
+                    feature, method, outliers_df, replace_values, affected_features_dict)
+        elif isinstance(imputation_method, dict):
             for feature in features:
-                if feature in strategies:
-                    self._apply_outlier_strategy(
-                        feature, strategies[feature], outliers_df, replace_values, affected_features_dict)
+                if feature in imputation_method:
+                    self._apply_outlier_imputation_method(
+                        feature, imputation_method[feature], outliers_df, replace_values, affected_features_dict)
                 else:
-                    print(f"Missing strategy for feature: {feature}")
+                    print(
+                        f"Missing outlier imputation method for feature: {feature}")
         else:
-            raise ValueError("strategies must be a list or a dictionary.")
+            raise ValueError(
+                "Outlier imputation method must be a list or a dictionary.")
 
         handled_indices = list(affected_features_dict.keys())
         handled_records = self.data.loc[handled_indices].copy()
@@ -75,72 +121,123 @@ class OutlierHandler:
 
         return handled_records, self.data
 
-    def _apply_outlier_strategy(self, feature, strategy, outliers_df, replace_values, affected_features_dict):
-        """Apply strategy to a single feature's outliers."""
+    def _apply_outlier_imputation_method(self, feature, imputation_method, outliers_df, replace_values, affected_features_dict):
+        """Apply imputation method to a single feature's outliers."""
         if feature not in self.data.columns:
             print(f"Feature '{feature}' not in dataset.")
             return
 
-        outlier_values = outliers_df[feature].dropna().unique()
-        outlier_indices = self.data[self.data[feature].isin(
-            outlier_values)].index
+        # Identify rows where this feature is marked as an outlier in 'outlier_source'
+        relevant_rows = outliers_df[
+            outliers_df["outlier_source"].str.contains(rf"\b{feature}\b")
+        ]
 
-        if strategy == "remove":
+        # Indexes of rows to be updated for this feature
+        outlier_indices = relevant_rows.index
+
+        if imputation_method == "remove":
             self.data.drop(index=outlier_indices, inplace=True)
             for idx in outlier_indices:
                 affected_features_dict.pop(idx, None)
 
-        elif strategy == "replace_mean":
+        elif imputation_method == "replace_mean":
             if pd.api.types.is_numeric_dtype(self.data[feature]):
                 replacement = self.data[feature].mean()
                 self.data.loc[outlier_indices, feature] = replacement
                 for idx in outlier_indices:
-                    affected_features_dict[idx].append(feature)
+                    if idx in affected_features_dict:
+                        affected_features_dict[idx].append(feature)
 
-        elif strategy == "replace_median":
+        elif imputation_method == "replace_median":
             if pd.api.types.is_numeric_dtype(self.data[feature]):
                 replacement = self.data[feature].median()
                 self.data.loc[outlier_indices, feature] = replacement
                 for idx in outlier_indices:
-                    affected_features_dict[idx].append(feature)
+                    if idx in affected_features_dict:
+                        affected_features_dict[idx].append(feature)
 
-        elif strategy == "replace_mode":
+        elif imputation_method == "replace_mode":
             replacement = self.data[feature].mode()[0]
             self.data.loc[outlier_indices, feature] = replacement
             for idx in outlier_indices:
-                affected_features_dict[idx].append(feature)
+                if idx in affected_features_dict:
+                    affected_features_dict[idx].append(feature)
 
-        elif strategy == "replace_value":
+        elif imputation_method == "replace_value":
             if replace_values and feature in replace_values:
                 replacement = replace_values[feature]
                 self.data.loc[outlier_indices, feature] = replacement
                 for idx in outlier_indices:
-                    affected_features_dict[idx].append(feature)
-
+                    if idx in affected_features_dict:
+                        affected_features_dict[idx].append(feature)
             else:
                 print(f"No replace_value provided for feature '{feature}'.")
 
-        elif strategy == "ffill":
+        elif imputation_method == "ffill":
             self.data.loc[outlier_indices,
                           feature] = self.data[feature].ffill()
             for idx in outlier_indices:
-                affected_features_dict[idx].append(feature)
+                if idx in affected_features_dict:
+                    affected_features_dict[idx].append(feature)
 
-        elif strategy == "bfill":
+        elif imputation_method == "bfill":
             self.data.loc[outlier_indices,
                           feature] = self.data[feature].bfill()
             for idx in outlier_indices:
-                affected_features_dict[idx].append(feature)
+                if idx in affected_features_dict:
+                    affected_features_dict[idx].append(feature)
 
-        elif strategy == "fill_interpolate":
+        elif imputation_method == "fill_interpolate":
             self.data.loc[outlier_indices,
                           feature] = self.data[feature].interpolate()
             for idx in outlier_indices:
-                affected_features_dict[idx].append(feature)
+                if idx in affected_features_dict:
+                    affected_features_dict[idx].append(feature)
 
-        elif strategy == "none" or strategy == "keep":
+        elif imputation_method == "none" or imputation_method == "keep":
             print(f"Keeping outliers for feature: {feature}")
 
         else:
             raise ValueError(
-                f"Invalid strategy '{strategy}' for feature '{feature}'.")
+                f"Invalid imputation method '{imputation_method}' for feature '{feature}'.")
+
+    def filter_outlier_heavy_rows(self, outliers_df, threshold=0.5):
+        """
+        Removes rows where the proportion of outlier features exceeds the threshold.
+
+        Args:
+            outliers_df (pd.DataFrame): DataFrame with 'outlier_source' column listing outlier features per row.
+            threshold (float): Proportion of outlier-affected features above which to remove a row (0.0 - 1.0).
+
+        Returns:
+            pd.DataFrame: A new DataFrame with outlier-heavy rows removed.
+        """
+        if outliers_df.empty or "outlier_source" not in outliers_df.columns:
+            print("⚠️ No outliers to process for row-wise filtering.")
+            return self.data.copy()
+
+        # Determine numerical features directly from the data
+        numerical_features = [col for col in self.data.columns
+                              if pd.api.types.is_numeric_dtype(self.data[col])]
+
+        total_numerical = len(numerical_features)
+        if total_numerical == 0:
+            print("❌ No numerical features found in the dataset.")
+            return self.data.copy()
+
+        # Compute number of outlier features per row
+        outlier_feature_counts = outliers_df["outlier_source"].str.split(
+            ",").apply(len)
+        outlier_ratios = outlier_feature_counts / total_numerical
+
+        # Identify rows exceeding the threshold
+        heavy_outlier_indices = outlier_ratios[outlier_ratios >
+                                               threshold].index
+
+        # Drop those rows
+        filtered_data = self.data.drop(index=heavy_outlier_indices)
+
+        print(
+            f"🧹 Removed {len(heavy_outlier_indices)} rows with > {threshold*100:.0f}% outlier features.")
+
+        return filtered_data

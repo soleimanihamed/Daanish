@@ -31,9 +31,10 @@ class MissingValueHandler:
             fill_values (list or dict, optional): Fill values for "fill_value" strategy.
                                                  If a list, it should have the same length as features.
                                                  If a dict, keys should be feature names.
-            Returns:
-            pandas.DataFrame: DataFrame containing records with replaced null values,
-                              with an added 'affected_features' column.
+                    Returns:
+                        tuple: A tuple containing two pandas.DataFrame:
+                            - The first DataFrame (`imputed_records`) contains only the records where missing values were imputed (filled). It includes an added 'affected_features' column indicating which features had missing values filled in that record.
+                            - The second DataFrame (`imputed_dataset`) is the modified version of the original DataFrame (`self.data`) after applying the specified missing value handling strategies to the selected features. Rows might be removed if the 'drop' strategy was used.
         """
         null_records_before = self.data[self.data[features].isnull().any(
             axis=1)].copy()
@@ -165,3 +166,18 @@ class MissingValueHandler:
         else:
             raise ValueError(
                 f"Invalid missing value handling strategy: {strategy}")
+
+    def features_with_many_missing(self, threshold=0.3):
+        """
+        Identify features with missing value ratio above a threshold.
+
+        Args:
+            threshold (float): Maximum allowed proportion of missing values (default is 0.3).
+
+        Returns:
+            list: Feature names exceeding the missing value threshold.
+        """
+        return [
+            col for col in self.data.columns
+            if self.data[col].isnull().mean() > threshold
+        ]

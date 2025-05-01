@@ -1,10 +1,7 @@
 # uitls/eda/outlier_detection.py
 
 import pandas as pd
-import numpy as np
-from scipy import stats
-from scipy.stats import (norm, expon, lognorm, gamma, beta, weibull_min, chi2, pareto, uniform, t, gumbel_r, burr, invgauss,
-                         triang, laplace, logistic, genextreme, skewnorm, genpareto, burr12, fatiguelife, geninvgauss, halfnorm, exponpow)
+import scipy.stats as stats
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 from utils.eda.statistical import StatisticalAnalysis
@@ -38,7 +35,7 @@ class OutlierDetector:
 
         df = self.data
 
-        numerical_outliers = []
+        all_outliers = []
 
         for feature in features:
             if feature not in df.columns:
@@ -60,26 +57,15 @@ class OutlierDetector:
                 if not feature_outliers.empty:
                     outliers_df = feature_outliers.copy()
                     outliers_df["outlier_source"] = feature
-                    numerical_outliers.append(outliers_df)
+                    all_outliers.append(outliers_df)
             else:
                 print(f"Skipping IQR for non-numerical feature: {feature}")
 
-        if not numerical_outliers:
+        if not all_outliers:
             print("No numerical outliers found.")
             return pd.DataFrame()
 
-        combined_outliers = pd.concat(numerical_outliers)
-
-        grouped_sources = combined_outliers.groupby(combined_outliers.index)[
-            "outlier_source"].apply(lambda x: ", ".join(set(x)))
-
-        combined_outliers = combined_outliers.loc[grouped_sources.index].copy()
-        combined_outliers["outlier_source"] = grouped_sources
-
-        num_outliers = len(combined_outliers)
-        print(f"Total number of IQR outliers found: {num_outliers}")
-
-        return combined_outliers
+        return self._combine_outlier_frames(all_outliers, message="Total number of IQR-based outliers found")
 
     def detect_custom_outliers(self, features, lower_bounds=None, upper_bounds=None):
         """
@@ -130,18 +116,7 @@ class OutlierDetector:
             print("No custom outliers found.")
             return pd.DataFrame()
 
-        combined_outliers = pd.concat(all_outliers)
-
-        grouped_sources = combined_outliers.groupby(combined_outliers.index)[
-            "outlier_source"].apply(lambda x: ", ".join(set(x)))
-
-        combined_outliers = combined_outliers.loc[grouped_sources.index].copy()
-        combined_outliers["outlier_source"] = grouped_sources
-
-        print(
-            f"Total number of custom outliers found: {len(combined_outliers)}")
-
-        return combined_outliers
+        return self._combine_outlier_frames(all_outliers, message="Total number of Custom-based outliers found")
 
     def detect_outliers_zscore(self, features, threshold=3, alpha=0.05):
         """
@@ -206,125 +181,7 @@ class OutlierDetector:
             print("No Z-score outliers found.")
             return pd.DataFrame()
 
-        combined_outliers = pd.concat(all_outliers)
-
-        grouped_sources = combined_outliers.groupby(combined_outliers.index)[
-            "outlier_source"].apply(lambda x: ", ".join(set(x)))
-
-        combined_outliers = combined_outliers.loc[grouped_sources.index].copy()
-        combined_outliers["outlier_source"] = grouped_sources
-
-        print(
-            f"Total number of Z-score outliers found: {len(combined_outliers)}")
-
-        return combined_outliers
-
-    def detect_outliers_distribution(self, distribution_results, confidence_interval=0.95):
-        """
-        Detects outliers based on fitted probability distributions for multiple features.
-
-        Args:
-            distribution_results (dict): Dictionary mapping feature names to their best-fitting distribution and parameters.
-            confidence_interval (float): Confidence interval for outlier detection.
-
-        Returns:
-            pd.DataFrame: DataFrame containing combined outliers with an 'outlier_source' column.
-        """
-
-        # Map string distribution names to their SciPy equivalents
-        distribution_mapping = {
-            "norm": norm, "expon": expon, "lognorm": lognorm, "gamma": gamma, "beta": beta, "weibull_min": weibull_min,
-            "chi2": chi2, "pareto": pareto, "uniform": uniform, "t": t, "gumbel_r": gumbel_r, "burr": burr,
-            "invgauss": invgauss, "triang": triang, "laplace": laplace, "logistic": logistic, "genextreme": genextreme,
-            "skewnorm": skewnorm, "genpareto": genpareto, "burr12": burr12, "fatiguelife": fatiguelife,
-            "geninvgauss": geninvgauss, "halfnorm": halfnorm, "exponpow": exponpow
-        }
-
-        df = self.data
-
-        all_outliers = []  # List to collect outliers
-        skipped_distributions = []  # List to collect skipped distributions
-
-        for feature, result in distribution_results.items():
-            if result["best_distribution"] is None:
-                skipped_distributions.append(
-                    (feature, "No distribution found"))
-                continue
-
-            distribution_name = result["best_distribution"]
-            params = result["parameters"]
-            filtered_data = df[feature].dropna()
-            distribution = distribution_mapping.get(distribution_name)
-
-            if distribution is None:
-                skipped_distributions.append(
-                    (feature, f"{distribution_name} not found in SciPy"))
-                continue
-
-            try:
-                # Extract parameters correctly
-                if distribution_name == "norm":
-                    loc, scale = params["loc"], params["scale"]
-                    lower_bound = norm.ppf(
-                        (1 - confidence_interval) / 2, loc=loc, scale=scale)
-                    upper_bound = norm.ppf(
-                        (1 + confidence_interval) / 2, loc=loc, scale=scale)
-                elif distribution_name == "lognorm":
-                    shape, loc, scale = params["s"], params["loc"], params["scale"]
-                    lower_bound = lognorm.ppf(
-                        (1 - confidence_interval) / 2, shape, loc=loc, scale=scale)
-                    upper_bound = lognorm.ppf(
-                        (1 + confidence_interval) / 2, shape, loc=loc, scale=scale)
-                elif distribution_name in ["beta", "gamma", "triang", "burr", "weibull_min"]:
-                    shape_params = tuple(
-                        params[k] for k in params if k not in ["loc", "scale"])
-                    loc, scale = params["loc"], params["scale"]
-                    lower_bound = distribution.ppf(
-                        (1 - confidence_interval) / 2, *shape_params, loc=loc, scale=scale)
-                    upper_bound = distribution.ppf(
-                        (1 + confidence_interval) / 2, *shape_params, loc=loc, scale=scale)
-                else:
-                    shape_params = tuple(params.values())
-                    # Default for one-sided distributions
-                    lower_bound = float("-inf")
-                    upper_bound = distribution.ppf(
-                        confidence_interval, *shape_params)
-
-                # Identify outliers
-                outliers = filtered_data[(filtered_data < lower_bound) | (
-                    filtered_data > upper_bound)]
-
-                if not outliers.empty:
-                    outliers_df = df.loc[outliers.index]
-                    outliers_df["outlier_source"] = feature
-                    all_outliers.append(outliers_df)
-
-            except Exception as e:
-                skipped_distributions.append(
-                    (feature, f"{distribution_name} error: {e}"))
-                continue
-
-        if not all_outliers:
-            combined_outliers = pd.DataFrame()
-        else:
-            # Concatenate all outliers into a single DataFrame
-            combined_outliers = pd.concat(all_outliers)
-
-            # Group by index and combine outlier sources into a single string
-            grouped_sources = combined_outliers.groupby(combined_outliers.index)[
-                "outlier_source"].apply(lambda x: ", ".join(set(x)))
-
-            combined_outliers = combined_outliers.loc[grouped_sources.index].copy(
-            )
-            combined_outliers["outlier_source"] = grouped_sources
-
-        # Print skipped distributions (if any)
-        if skipped_distributions:
-            print("\nDistributions Skipped:")
-            for feature, reason in skipped_distributions:
-                print(f"Feature: {feature}, Reason: {reason}")
-
-        return combined_outliers
+        return self._combine_outlier_frames(all_outliers, message="Total number of Z-Score-based outliers found")
 
     def detect_outliers_isolation_forest(self, features, contamination='auto', max_samples=0.8, n_estimators=200, random_state=42):
         """
@@ -387,15 +244,13 @@ class OutlierDetector:
             print("No Isolation Forest outliers found.")
             return pd.DataFrame()
 
-        # Identify the features that caused outlier flags
         outlier_data["outlier_source"] = outlier_records.loc[outlier_rows].apply(
             lambda row: ", ".join(row.index[row]), axis=1
         )
 
-        print(
-            f"Total number of Isolation Forest outliers found: {len(outlier_data)}")
-
-        return outlier_data
+        return self._combine_outlier_frames(
+            [outlier_data], message="Total number of Isolation Forest-based outliers found"
+        )
 
     def detect_outliers_lof(self, features, n_neighbors=20, contamination=0.01):
         """
@@ -443,7 +298,102 @@ class OutlierDetector:
             print("No LOF outliers found.")
             return pd.DataFrame()
 
-        combined_outliers = pd.concat(all_outliers)
+        return self._combine_outlier_frames(all_outliers, message="Total number of LOF-based outliers found")
+
+    def detect_outliers_distribution(self, distribution_results, confidence_interval=0.95):
+        """
+        Detects outliers based on fitted probability distributions for multiple features.
+
+        Args:
+            distribution_results (dict): Dictionary mapping feature names to their best-fitting distribution and parameters.
+            confidence_interval (float): Confidence interval for outlier detection.
+
+        Returns:
+            pd.DataFrame: DataFrame containing combined outliers with an 'outlier_source' column.
+        """
+
+        distribution_mapping = self._get_all_distributions()
+        df = self.data
+        all_outliers = []
+        skipped_distributions = []
+
+        for feature, result in distribution_results.items():
+            if result["best_distribution"] is None:
+                skipped_distributions.append(
+                    (feature, "No distribution found"))
+                continue
+
+            dist_name = result["best_distribution"]
+            params = result["parameters"]
+            dist = distribution_mapping.get(dist_name)
+
+            if dist is None:
+                skipped_distributions.append(
+                    (feature, f"{dist_name} not found"))
+                continue
+
+            try:
+                filtered_data = df[feature].dropna()
+                shape_keys = [k for k in params if k not in ["loc", "scale"]]
+                shape_vals = [params[k] for k in shape_keys]
+                loc = params.get("loc", 0)
+                scale = params.get("scale", 1)
+
+                # Use dynamic bounds
+                lower = dist.ppf((1 - confidence_interval) / 2,
+                                 *shape_vals, loc=loc, scale=scale)
+                upper = dist.ppf((1 + confidence_interval) / 2,
+                                 *shape_vals, loc=loc, scale=scale)
+
+                outliers = filtered_data[(filtered_data < lower) | (
+                    filtered_data > upper)]
+                if not outliers.empty:
+                    outliers_df = df.loc[outliers.index]
+                    outliers_df["outlier_source"] = feature
+                    all_outliers.append(outliers_df)
+
+            except Exception as e:
+                skipped_distributions.append(
+                    (feature, f"{dist_name} error: {e}"))
+
+        combined_outliers = self._combine_outlier_frames(
+            all_outliers, message="Total number of distribution-based outliers found"
+        )
+
+        if skipped_distributions:
+            print("\nDistributions Skipped:")
+            for feature, reason in skipped_distributions:
+                print(f"Feature: {feature}, Reason: {reason}")
+
+        return combined_outliers
+
+    def _get_all_distributions(self):
+        """
+        Returns a dictionary mapping distribution names to SciPy distribution objects.
+        Filters out any invalid or inaccessible attributes.
+        """
+        all_dist_names = [
+            name for name in dir(stats)
+            if isinstance(getattr(stats, name), stats.rv_continuous)
+        ]
+
+        return {name: getattr(stats, name) for name in all_dist_names}
+
+    def _combine_outlier_frames(self, outlier_frames, message=None):
+        """
+        Combines a list of outlier DataFrames, aggregates outlier sources per record.
+
+        Args:
+            outlier_frames (list): List of DataFrames, each with an 'outlier_source' column.
+            message (str, optional): Optional message to print with the number of combined outliers.
+
+        Returns:
+            pd.DataFrame: Combined and aggregated outlier records.
+        """
+        if not outlier_frames:
+            return pd.DataFrame()
+
+        combined_outliers = pd.concat(outlier_frames)
 
         grouped_sources = combined_outliers.groupby(combined_outliers.index)[
             "outlier_source"].apply(lambda x: ", ".join(set(x)))
@@ -451,6 +401,73 @@ class OutlierDetector:
         combined_outliers = combined_outliers.loc[grouped_sources.index].copy()
         combined_outliers["outlier_source"] = grouped_sources
 
-        print(f"Total number of LOF outliers found: {len(combined_outliers)}")
+        if message:
+            print(f"{message}: {len(combined_outliers)}")
 
         return combined_outliers
+
+    def detect_outliers_featurewise(self, method_config, distribution_results=None):
+        """
+        Detects outliers per feature using different methods and parameters.
+
+        Args:
+            method_config (dict): Mapping of feature name to dict with keys:
+                                - 'method': str, detection method name
+                                - 'params': dict, method-specific parameters
+            distribution_results (dict): Optional pre-fitted distribution results for distribution-based methods.
+
+        Returns:
+            pd.DataFrame: Combined outlier DataFrame across all methods.
+        """
+
+        all_outliers = []
+
+        for feature, config in method_config.items():
+            method = config.get("method")
+            params = config.get("params", {})
+            outliers = pd.DataFrame()
+
+            if method == "iqr":
+                outliers = self.detect_outliers_iqr([feature], **params)
+
+            elif method == "zscore":
+                outliers = self.detect_outliers_zscore([feature], **params)
+
+            elif method == "custom":
+                outliers = self.detect_custom_outliers([feature],
+                                                       lower_bounds={
+                                                           feature: params.get("lower")},
+                                                       upper_bounds={feature: params.get("upper")})
+            elif method == "distribution":
+                if distribution_results and feature in distribution_results:
+                    dist_result = distribution_results[feature]
+
+                else:
+                    eda_stat = StatisticalAnalysis(self.data)
+                    dist_result = eda_stat.fit_best_distribution(
+                        feature,
+                        method='sumsquare_error',
+                        common_distributions=True,
+                        timeout=60
+                    )
+
+                outliers = self.detect_outliers_distribution(
+                    {feature: dist_result},
+                    confidence_interval=params.get("confidence_interval", 0.95)
+                )
+
+            elif method == "isolation":
+                outliers = self.detect_outliers_isolation_forest(
+                    [feature], **params)
+
+            elif method == "lof":
+                outliers = self.detect_outliers_lof([feature], **params)
+
+            else:
+                print(f"Unknown method '{method}' for feature '{feature}'")
+                continue
+
+            if not outliers.empty:
+                all_outliers.append(outliers)
+
+        return self._combine_outlier_frames(all_outliers, message="Total combined outliers found across all methods")

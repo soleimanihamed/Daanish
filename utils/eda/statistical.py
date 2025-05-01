@@ -89,6 +89,25 @@ class StatisticalAnalysis:
             'halfnorm', 'exponpow'
         ]
 
+        # Validate and filter features
+        numeric_features = [
+            var for var in numeric_variables
+            if var in self.data.columns and pd.api.types.is_numeric_dtype(self.data[var])
+        ]
+
+        non_numeric = [
+            var for var in numeric_variables
+            if var not in self.data.columns or not pd.api.types.is_numeric_dtype(self.data[var])
+        ]
+
+        if non_numeric:
+            print("⚠️ Skipping non-numeric features in distribution fitting:",
+                  ", ".join(non_numeric))
+
+        if not numeric_features:
+            print("❌ No numeric features to fit distributions on.")
+            return {}
+
         # Iterate over the input variables
         for variable in numeric_variables:
             # Check if the variable is numeric

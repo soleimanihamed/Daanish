@@ -2,7 +2,7 @@
 
 import pandas as pd
 import numpy as np
-from scipy.stats import spearmanr, kendalltau, pointbiserialr, chi2_contingency
+from scipy.stats import spearmanr, kendalltau, pointbiserialr, chi2_contingency, kruskal
 from sklearn.feature_selection import f_classif, mutual_info_classif, mutual_info_regression
 from sklearn.preprocessing import LabelEncoder
 import warnings
@@ -76,6 +76,34 @@ class CorrelationAnalyzer:
             return 0.0
         return np.sqrt(numerator/denominator)
 
+    def _normalized_mutual_info(self, x, y):
+        x_enc = LabelEncoder().fit_transform(x.astype(str))
+        y_enc = LabelEncoder().fit_transform(y.astype(str))
+        mi = mutual_info_classif(x_enc.reshape(-1, 1),
+                                 y_enc, discrete_features=True)[0]
+        h_x = np.unique(x_enc, return_counts=True)[1]
+        h_y = np.unique(y_enc, return_counts=True)[1]
+        h_x = -np.sum((h_x / h_x.sum()) * np.log2(h_x / h_x.sum()))
+        h_y = -np.sum((h_y / h_y.sum()) * np.log2(h_y / h_y.sum()))
+        denom = np.sqrt(h_x * h_y)
+        return mi / denom if denom > 0 else 0.0
+
+    def _normalized_mutual_info_regression(self, x, y, bins=20):
+        x_enc = LabelEncoder().fit_transform(x.astype(str))
+        mi = mutual_info_regression(x_enc.reshape(-1, 1), y)[0]
+
+        # Entropy of x
+        h_x = np.unique(x_enc, return_counts=True)[1]
+        h_x = -np.sum((h_x / h_x.sum()) * np.log2(h_x / h_x.sum()))
+
+        # Approximate entropy of continuous y using histogram bins
+        y_counts, _ = np.histogram(y, bins=bins)
+        y_probs = y_counts / y_counts.sum()
+        h_y = -np.sum([p * np.log2(p) for p in y_probs if p > 0])
+
+        denom = np.sqrt(h_x * h_y)
+        return mi / denom if denom > 0 else 0.0
+
     def _calculate_numerical_numerical_correlation(self, numerical_cols, method="pearson"):
         """
         Calculates the correlation matrix for numerical columns using the specified method.
@@ -123,11 +151,8 @@ class CorrelationAnalyzer:
                             score = self._cramers_v(
                                 self.data[col1], self.data[col2])
                         elif method == "mutual_info":
-                            le = LabelEncoder()
-                            x = le.fit_transform(self.data[col1].astype(str))
-                            y = le.fit_transform(self.data[col2].astype(str))
-                            score = mutual_info_classif(
-                                x.reshape(-1, 1), y, discrete_features=True).mean()
+                            score = self._normalized_mutual_info(
+                                self.data[col1], self.data[col2])
                         else:
                             raise ValueError(
                                 f"Unsupported categorical-categorical method: {method}")
@@ -169,9 +194,15 @@ class CorrelationAnalyzer:
                         x_enc = LabelEncoder().fit_transform(x.astype(str))
                         score = f_classif(x_enc.reshape(-1, 1), y)[0][0]
                     elif method == "mutual_info":
-                        x_enc = LabelEncoder().fit_transform(x.astype(str))
-                        score = mutual_info_regression(
-                            x_enc.reshape(-1, 1), y)[0]
+                        score = self._normalized_mutual_info_regression(x, y)
+                    elif method == "kruskal":
+                        groups = [y[x == val] for val in np.unique(x)]
+                        score = kruskal(
+                            *groups)[0] if all(len(g) > 0 for g in groups) else 0.0
+                    elif method == "target_spearman":
+                        target_means = x.groupby(x).transform(
+                            lambda v: y[x == v].mean())
+                        score = spearmanr(target_means, y).correlation
                     else:
                         raise ValueError(
                             f"Unsupported categorical-numerical method: {method}")

@@ -1,4 +1,4 @@
-# uitls/eda/Visualisation Class
+# uitls/eda/visualisation/general_viz.py
 
 import numpy as np
 import matplotlib.pyplot as plt

@@ -15,7 +15,7 @@ class SaveUtils:
         """
         self.output_dir = output_dir
 
-    def save_dataframe_to_csv(self, df, full_path_name, overwrite=True):
+    def save_dataframe_to_csv(self, df, full_path_name, overwrite=True, index=False):
         """
         Saves a pandas DataFrame to a CSV file.
 
@@ -30,12 +30,12 @@ class SaveUtils:
                     f"File {full_path_name} already exists. Set overwrite=True to overwrite it.")
                 return
 
-            df.to_csv(full_path_name, index=False)
+            df.to_csv(full_path_name, index=index)
             print(f"Data saved to {full_path_name} successfully.")
         except Exception as e:
             print(f"Error occurred while saving data: {e}")
 
-    def save_dataframe_to_excel(self, df, full_path_name, sheet_name='Sheet1', overwrite=True):
+    def save_dataframe_to_excel(self, df, full_path_name, sheet_name='Sheet1', overwrite=True, index=False):
         """
         Saves a pandas DataFrame to an Excel file with the given sheet name.
 
@@ -52,7 +52,7 @@ class SaveUtils:
                 return
 
             df.to_excel(full_path_name, sheet_name=sheet_name,
-                        index=False, engine='openpyxl')
+                        index=index, engine='openpyxl')
             print(f"Excel file saved to {full_path_name} successfully.")
         except Exception as e:
             print(f"Error occurred while saving Excel file: {e}")

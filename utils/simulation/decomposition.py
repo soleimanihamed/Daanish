@@ -1,4 +1,4 @@
-# utils/simulation/decomposition
+# daanish/utils/simulation/decomposition.py
 
 import numpy as np
 import pandas as pd

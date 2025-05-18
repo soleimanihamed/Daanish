@@ -1,4 +1,4 @@
-# utils/simulation/sim_utils.py
+# daanish/utils/simulation/sim_utils.py
 
 import numpy as np
 import pandas as pd
@@ -109,6 +109,10 @@ class RandomSimulator:
 
             col = (col - np.mean(col)) / np.std(col)
             random_numbers[:, i] = col
+
+        # Skip decorrelation if only one variable
+        if num_variables == 1:
+            return random_numbers
 
         # Decorrelate
         cov_matrix = np.cov(random_numbers, rowvar=False)

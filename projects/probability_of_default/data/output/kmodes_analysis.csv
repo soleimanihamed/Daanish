@@ -1,0 +1,6 @@
+,Cluster,person_home_ownership,loan_intent,loan_grade,cb_person_default_on_file,Count
+0,0,RENT,EDUCATION,B,N,12428
+1,1,MORTGAGE,PERSONAL,A,N,8475
+2,2,RENT,VENTURE,A,N,3411
+3,3,RENT,EDUCATION,D,Y,2486
+4,4,RENT,MEDICAL,C,Y,2665

@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
 
 
 class ClusterVisualisation:
@@ -13,33 +14,39 @@ class ClusterVisualisation:
     """
 
     @staticmethod
-    def plot_clusters_2d(pca_components, labels, centroids=None, title='Clusters in 2D'):
+    def plot_clusters_2d(components, labels, centroids=None, title='Clusters in 2D', xlabel='Component 1', ylabel='Component 2'):
         """
-        Plots clustered data points in 2D space using PCA-reduced components.
+        Plots clustered data points in 2D space using any 2D projection (e.g., PCA, MCA, t-SNE).
 
         Parameters:
-            pca_components (np.ndarray): A 2D array of shape (n_samples, 2) 
-                representing the projected data points.
-            labels (array-like): Cluster labels corresponding to each data point.
-            centroids (np.ndarray, optional): A 2D array of shape (n_clusters, 2) 
-                representing cluster centroids in the same reduced space.
-            title (str, optional): Title for the plot. Default is 'Clusters in 2D'.
-
-        Returns:
-            None: Displays a matplotlib scatter plot showing the clusters and (optionally) centroids.
+            components (np.ndarray): A 2D array (n_samples, 2) representing projected points.
+            labels (array-like): Cluster labels.
+            centroids (np.ndarray, optional): Optional projected centroids.
+            title (str): Plot title.
+            xlabel (str): Label for x-axis.
+            ylabel (str): Label for y-axis.
         """
 
         plt.figure(figsize=(8, 6))
         sns.scatterplot(
-            x=pca_components[:, 0], y=pca_components[:, 1],
-            hue=labels, palette='Set2', s=60
-        )
+            x=components[:, 0], y=components[:, 1], hue=labels, palette='Set2', s=60)
+
         if centroids is not None:
-            plt.scatter(centroids[:, 0], centroids[:, 1],
-                        c='black', marker='X', s=100, label='Centroids')
+            if isinstance(centroids, pd.DataFrame):
+                x_centroids = centroids.iloc[:, 0]
+                y_centroids = centroids.iloc[:, 1]
+            else:
+                x_centroids = centroids[:, 0]
+                y_centroids = centroids[:, 1]
+
+            plt.scatter(
+                x_centroids, y_centroids,
+                c='black', marker='X', s=100, label='Centroids'
+            )
+
         plt.title(title)
-        plt.xlabel("PCA Component 1")
-        plt.ylabel("PCA Component 2")
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
         plt.legend()
         plt.grid(True)
         plt.tight_layout()

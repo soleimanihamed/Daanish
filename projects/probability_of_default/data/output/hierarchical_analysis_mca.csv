@@ -1,0 +1,5 @@
+,0,1,2
+person_home_ownership,RENT,RENT,OWN
+loan_intent,EDUCATION,EDUCATION,VENTURE
+loan_grade,C,A,A
+cb_person_default_on_file,Y,N,N

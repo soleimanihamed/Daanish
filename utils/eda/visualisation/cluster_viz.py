@@ -9,7 +9,7 @@ class ClusterVisualisation:
     """
     A utility class for visualising clustering results in 2D space.
 
-    This class provides static methods for plotting cluster assignments 
+    This class provides static methods for plotting cluster assignments
     after dimensionality reduction (e.g., using PCA or t-SNE).
     """
 
@@ -19,17 +19,24 @@ class ClusterVisualisation:
         Plots clustered data points in 2D space using any 2D projection (e.g., PCA, MCA, t-SNE).
 
         Parameters:
-            components (np.ndarray): A 2D array (n_samples, 2) representing projected points.
+            components (np.ndarray or pd.DataFrame): A 2D array (n_samples, 2) representing projected points.
             labels (array-like): Cluster labels.
-            centroids (np.ndarray, optional): Optional projected centroids.
+            centroids (np.ndarray or pd.DataFrame, optional): Optional projected centroids.
             title (str): Plot title.
             xlabel (str): Label for x-axis.
             ylabel (str): Label for y-axis.
         """
 
         plt.figure(figsize=(8, 6))
-        sns.scatterplot(
-            x=components[:, 0], y=components[:, 1], hue=labels, palette='Set2', s=60)
+
+        if isinstance(components, pd.DataFrame):
+            x_vals = components.iloc[:, 0]
+            y_vals = components.iloc[:, 1]
+        else:
+            x_vals = components[:, 0]
+            y_vals = components[:, 1]
+
+        sns.scatterplot(x=x_vals, y=y_vals, hue=labels, palette='Set2', s=60)
 
         if centroids is not None:
             if isinstance(centroids, pd.DataFrame):

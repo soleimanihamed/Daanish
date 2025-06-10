@@ -1,4 +1,4 @@
-# utils/eda/pca_analyzer.py
+# utils/dimensionality/pca_analyzer.py
 
 import pandas as pd
 import numpy as np

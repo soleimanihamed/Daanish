@@ -113,3 +113,14 @@ class MCAAnalyzer:
             raise ValueError(
                 "MCA has not been fitted or explained inertia could not be determined.")
         return self.explained_inertia_proportions
+
+    def get_column_contributions_df(self):
+        """
+        Get the contributions of each category (column) to each MCA dimension (% contribution to inertia).
+
+        Returns:
+        pd.DataFrame: Contribution of each category to each dimension.
+        """
+        if self.mca is None:
+            raise ValueError("MCA model has not been fitted yet.")
+        return self.mca.column_contributions_

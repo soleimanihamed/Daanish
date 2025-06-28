@@ -11,7 +11,7 @@ class FAMDAnalyzer:
     Includes built-in support for numerical feature scaling.
     """
 
-    def __init__(self, n_components=2, scale_numerical=True, scaling_method='zscore',
+    def __init__(self, n_components=None, scale_numerical=True, scaling_method='zscore',
                  handle_skew=False, skew_method='log', skew_threshold=1.0):
         """
         Initialize the FAMDAnalyzer.
@@ -81,6 +81,15 @@ class FAMDAnalyzer:
             X_for_famd = pd.concat(
                 [scaled_numerical_df, X[self.cat_features]], axis=1)
             print("Scaling complete. Final DataFrame prepared for FAMD.")
+
+        # Determine number of components if not specified
+        if self.n_components is None:
+            num_cats = sum(X_for_famd[cat].nunique()
+                           for cat in self.cat_features)
+            num_vars = len(self.cat_features) + len(self.num_features)
+            self.n_components = num_cats + len(self.num_features) - num_vars
+            print(
+                f"[INFO] n_components not specified. Fitting with maximum possible components: {self.n_components}")
 
         # Fit the FAMD model on the (potentially scaled) data
         self.famd = prince.FAMD(

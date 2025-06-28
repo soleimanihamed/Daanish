@@ -1,4 +1,4 @@
-# utils/eda/mca_analyzer.py
+# utils/dimensionality/mca_analyzer.py
 
 import pandas as pd
 import prince
@@ -9,7 +9,7 @@ class MCAAnalyzer:
     A class for performing MCA (Multiple Correspondence Analysis) on categorical data.
     """
 
-    def __init__(self, n_components=2):
+    def __init__(self, n_components=None):
         """
         Initialize the MCAAnalyzer.
 
@@ -42,7 +42,23 @@ class MCAAnalyzer:
         if X_cat.empty:
             raise ValueError("No categorical features found for MCA.")
 
-        self.mca = prince.MCA(n_components=self.n_components, random_state=42)
+        # Determine the number of components to use for the analysis
+        if self.n_components is None:
+            # If no components are specified, calculate the maximum possible number
+            num_categorical_vars = len(self.categorical_features_used)
+            total_categories = sum(X_cat[col].nunique()
+                                   for col in self.categorical_features_used)
+            n_components_to_fit = total_categories - num_categorical_vars
+            print(
+                f"[INFO] n_components not specified. Fitting with maximum possible components: {n_components_to_fit}")
+        else:
+            # Use the user-specified number of components
+            n_components_to_fit = self.n_components
+
+        # Use the determined number of components to initialize MCA
+        self.mca = prince.MCA(
+            n_components=n_components_to_fit, random_state=42)
+
         self.mca = self.mca.fit(X_cat)
         self.row_coordinates = self.mca.transform(X_cat)
         self.column_coordinates = self.mca.column_coordinates(X_cat)

@@ -1,13 +1,13 @@
-feature,type,target_variable,miss_val_strategy,miss_fill_value,display_name,outlier_strategy,outlier_params,outlier_imputation_method,outlier_imputation_value
-person_age,numerical,0,fill_median,,Age,custom,"{""lower"": 18, ""upper"": 80}",replace_median,
-person_income,numerical,0,fill_median,,Income,,,keep,
-person_home_ownership,nominal,0,fill_mode,,Home ownership,,,keep,
-person_emp_length,numerical,0,fill_median,,Employment length,custom,"{""upper"": 50}",replace_value,50
-loan_intent,nominal,0,drop,,Loan intent,,,keep,
-loan_grade,nominal,0,drop,,Loan grade,,,keep,
-loan_amnt,numerical,0,drop,,Loan amount,,,keep,
-loan_int_rate,numerical,0,drop,,Interest rate,,,keep,
-loan_status,nominal,1,drop,,Loan status,,,keep,
-loan_percent_income,numerical,0,fill_median,,Debt to income,,,keep,
-cb_person_default_on_file,nominal,0,drop,,Defaulted before,,,keep,
-cb_person_cred_hist_length,numerical,0,fill_median,,Credit history length,,,keep,
+feature,type,target_variable,miss_val_strategy,miss_fill_value,display_name,outlier_strategy,outlier_params,outlier_imputation_method,outlier_imputation_value,binning_config
+person_age,numerical,0,fill_median,,Age,custom,"{""lower"": 18, ""upper"": 80}",replace_median,,"[22.5, 25.5, 28.5, 29.5]"
+person_income,numerical,0,fill_median,,Income,,,keep,,"[23002.0, 34999.5, 39937.5, 49994.0, 59982.0, 79942.5, 108811.5]"
+person_home_ownership,nominal,0,fill_mode,,Home ownership,,,keep,,
+person_emp_length,numerical,0,fill_median,,Employment length,custom,"{""upper"": 50}",replace_value,50,"[0.5, 1.5, 2.5, 4.5, 6.5, 7.5, 11.5]"
+loan_intent,nominal,0,drop,,Loan intent,,,keep,,
+loan_grade,nominal,0,drop,,Loan grade,,,keep,,
+loan_amnt,numerical,0,drop,,Loan amount,,,keep,,"[3262.5, 5087.5, 6087.5, 7387.5, 8237.5, 10587.5, 12675.0, 18087.5, 22150.0]"
+loan_int_rate,numerical,0,drop,,Interest rate,,,keep,,"[6.46, 7.46, 7.89, 9.63, 11.27, 12.06, 12.72, 13.61, 14.36, 15.27, 16.3]"
+loan_status,nominal,1,drop,,Loan status,,,keep,,
+loan_percent_income,numerical,0,fill_median,,Debt to income,,,keep,,"[0.055, 0.075, 0.135, 0.155, 0.175, 0.205, 0.255, 0.305, 0.375]"
+cb_person_default_on_file,nominal,0,drop,,Defaulted before,,,keep,,
+cb_person_cred_hist_length,numerical,0,fill_median,,Credit history length,,,keep,,"[2.5, 3.5, 4.5, 6.5, 7.5, 13.5]"

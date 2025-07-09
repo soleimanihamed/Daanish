@@ -266,3 +266,29 @@ class Visualisation:
         plt.yticks(rotation=0)
         plt.tight_layout()
         plt.show()
+
+    def plot_binned_distribution(self, feature, bins_column=None):
+        """
+        Plot the distribution of a binned feature.
+
+        Parameters:
+            feature (str): The original feature name (e.g., 'person_age').
+            bins_column (str, optional): The name of the binned column. 
+                                        Defaults to '{feature}_binned'.
+        """
+        if bins_column is None:
+            bins_column = f"{feature}_binned"
+
+        if bins_column not in self.data.columns:
+            print(
+                f"Warning: Binned column '{bins_column}' not found in dataset.")
+            return
+
+        plt.figure(figsize=(8, 4))
+        sns.countplot(x=self.data[bins_column], palette="viridis")
+        display_name = self.column_name_mapping.get(feature, feature)
+        plt.title(f"Distribution of Binned {display_name}")
+        plt.xlabel("Bin")
+        plt.ylabel("Count")
+        plt.tight_layout()
+        plt.show()

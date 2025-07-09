@@ -42,6 +42,8 @@ class FeatureManager:
         self.outlier_imputation_methods = {}
         # Dictionary to store custom value if outlier imputation method is 'Custom'
         self.outlier_imputation_values = {}
+        # Dictionary to store custom binning if binning method is 'manual'
+        self.binning_config = {}
 
         df = load_data(source_type, input_path=input_path,
                        query=query, global_config=global_config)
@@ -113,6 +115,13 @@ class FeatureManager:
             self.outlier_imputation_values = dict(
                 zip(df['feature'], df['outlier_imputation_value'])
             )
+
+        # Load binning cofig to manually bin data
+        if 'binning_config' in df.columns:
+            self.binning_configs = dict(
+                zip(df['feature'], df['binning_config']))
+        else:
+            self.binning_configs = {}
 
     def get_nominal_features(self):
         """Return a list of nominal features."""
@@ -202,5 +211,53 @@ class FeatureManager:
                 "imputation_method": self.outlier_imputation_methods.get(feature, "none"),
                 "imputation_value": self.outlier_imputation_values.get(feature)
             }
+
+        return config
+
+    def get_binning_configs(self):
+        """Return a dictionary of raw binning_config strings."""
+        return self.binning_configs
+
+    def get_binning_config_bundle(self):
+        """
+        Builds a full binning config dictionary for use in the Binner class.
+
+        Returns:
+            dict: {
+                feature: {
+                    "type": "numerical" or "categorical",
+                    "method": "manual_numerical" or "manual_categorical",
+                    "bin_edges" or "mapping": list
+                }
+            }
+        """
+
+        config = {}
+        for feature, raw_value in self.binning_configs.items():
+            if pd.isna(raw_value):
+                continue
+            try:
+                parsed = json.loads(raw_value)
+            except Exception:
+                print(
+                    f"Warning: Invalid JSON for binning_config in feature '{feature}'")
+                continue
+
+            if feature in self.nominal_features:
+                feature_type = "categorical"
+                method = "manual_categorical"
+                config[feature] = {
+                    "type": feature_type,
+                    "method": method,
+                    "mapping": parsed
+                }
+            else:  # numerical or ordinal
+                feature_type = "numerical"
+                method = "manual_numerical"
+                config[feature] = {
+                    "type": feature_type,
+                    "method": method,
+                    "bin_edges": parsed
+                }
 
         return config

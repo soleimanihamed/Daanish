@@ -1,6 +1,7 @@
 # utils/eda/visualisation/feature_importance_viz.py
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 class FeatureImportanceVisualiser:
@@ -51,3 +52,58 @@ class FeatureImportanceVisualiser:
         """
         for feature in self.woe_map.keys():
             self.plot_woe_trend(feature)
+
+    def plot_iv_scores(self, iv_df):
+        """
+        Plots Information Value (IV) scores with interpretation color bands.
+
+        Parameters
+        ----------
+        iv_df : pd.DataFrame
+            A dataframe with 'Feature' and 'IV' columns.
+        """
+        # Categorize IV interpretation
+        def categorize_iv(iv):
+            if iv < 0.02:
+                return 'Not useful'
+            elif iv < 0.1:
+                return 'Weak'
+            elif iv < 0.3:
+                return 'Medium'
+            elif iv < 0.5:
+                return 'Strong'
+            else:
+                return 'Suspiciously strong'
+
+        iv_df = iv_df.copy()
+        iv_df['IV Category'] = iv_df['IV'].apply(categorize_iv)
+
+        # Sort features
+        iv_df = iv_df.sort_values(by='IV', ascending=True)
+
+        # Set color palette
+        palette = {
+            'Not useful': '#d62728',
+            'Weak': '#ff7f0e',
+            'Medium': '#1f77b4',
+            'Strong': '#2ca02c',
+            'Suspiciously strong': '#9467bd'
+        }
+
+        # Plot
+        plt.figure(figsize=(10, 6))
+        sns.barplot(
+            data=iv_df,
+            x='IV',
+            y='Feature',
+            hue='IV Category',
+            dodge=False,
+            palette=palette
+        )
+        plt.title('Information Value (IV) by Feature')
+        plt.xlabel('Information Value (IV)')
+        plt.ylabel('Feature')
+        plt.legend(title='IV Strength')
+        plt.grid(axis='x', linestyle='--', alpha=0.5)
+        plt.tight_layout()
+        plt.show()

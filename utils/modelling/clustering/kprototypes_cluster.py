@@ -296,3 +296,26 @@ class KPrototypesClustering:
             'Cluster')[[famd_df.columns[0], famd_df.columns[1]]].mean()
         centroids.reset_index(drop=True, inplace=True)
         return centroids
+
+    def add_cluster_column(self, base_col_name="kproto_cluster"):
+        """
+        Adds cluster labels as a new column in the original DataFrame.
+        If a column with the desired name already exists, appends a numeric suffix.
+
+        Args:
+            base_col_name (str): Desired base name of the cluster column.
+
+        Returns:
+            pd.DataFrame: DataFrame with the new cluster column added.
+        """
+        df_copy = self.df.copy()
+        col_name = base_col_name
+
+        # Check for name conflicts and add suffix if needed
+        suffix = 1
+        while col_name in df_copy.columns:
+            col_name = f"{base_col_name}_{suffix}"
+            suffix += 1
+
+        df_copy[col_name] = self.labels_
+        return df_copy

@@ -8,8 +8,7 @@ from scipy.stats import kurtosis, skew
 class RandomSimulator:
     """
     A utility class for generating random simulations using various probability distributions.
-    It supports standard Poisson simulations as well as normally-distributed random variables
-    with controlled skewness and kurtosis, while ensuring variables remain uncorrelated.
+    ...
 
     Parameters
     ----------
@@ -17,31 +16,64 @@ class RandomSimulator:
         Array of input parameters (e.g., means or rates) for each variable.
     num_simulations : int, optional
         Number of simulations to generate (default is 10,000).
+    column_names : list of str, optional
+        Optional names for the simulated columns. If not provided, generic names are used.
     """
 
-    def __init__(self, parameters=None, num_simulations=10000):
+    def __init__(self, parameters=None, num_simulations=10000, column_names=None):
         self.parameters = np.array(
             parameters) if parameters is not None else None
         self.num_simulations = num_simulations
         self.n = len(self.parameters) if self.parameters is not None else None
+        self.column_names = (
+            column_names if column_names is not None
+            else [f"Variable_{i+1}" for i in range(self.n)] if self.n is not None
+            else None
+        )
 
     def simulate_poisson(self):
         """
-        Simulates random draws from the Poisson distribution for each parameter.
+        Simulates uncorrelated Poisson-distributed values for each parameter.
 
         Returns
         -------
         pandas.DataFrame
-            A DataFrame containing Poisson-distributed simulations for each variable.
+            A DataFrame containing uncorrelated Poisson-distributed simulations
+            for each variable.
         """
         if self.parameters is None:
             raise ValueError(
                 "Poisson simulation requires parameters (e.g., lambda values).")
 
+        # Generate raw Poisson samples
         A = np.ones((self.num_simulations, self.n)) * self.parameters
         poisson_draws = np.random.poisson(A)
-        df_poisson = pd.DataFrame(poisson_draws, columns=[
-                                  f"Variable_{i+1}" for i in range(self.n)])
+
+        # Standardize
+        standardized = (poisson_draws - np.mean(poisson_draws,
+                        axis=0)) / np.std(poisson_draws, axis=0)
+
+        # Decorrelate
+        if self.n > 1:
+            cov_matrix = np.cov(standardized, rowvar=False)
+            eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+            decorrelated = standardized @ eigenvectors @ np.diag(
+                1 / np.sqrt(eigenvalues)) @ eigenvectors.T
+
+            # Shuffle each column to break residual patterns
+            for i in range(self.n):
+                np.random.shuffle(decorrelated[:, i])
+
+            # Reintroduce Poisson-like structure by inverse-scaling
+            decorrelated_scaled = decorrelated * \
+                np.std(poisson_draws, axis=0) + np.mean(poisson_draws, axis=0)
+
+            df_poisson = pd.DataFrame(
+                decorrelated_scaled, columns=self.column_names)
+
+        else:
+            df_poisson = pd.DataFrame(poisson_draws, columns=self.column_names)
+
         return df_poisson
 
     def simulate_normal(self, target_skew=0, target_kurt=3, num_variables=None):
@@ -67,9 +99,19 @@ class RandomSimulator:
             n_vars = self.n
         elif num_variables is not None:
             n_vars = num_variables
+            self.parameters = np.ones(n_vars)  # default std = 1 if no scaling
+            self.n = n_vars
         else:
             raise ValueError(
                 "Provide either `parameters` or `num_variables` for normal simulation.")
+
+        # Validate column_names
+        if self.column_names is not None:
+            if len(self.column_names) != n_vars:
+                raise ValueError(
+                    f"Length of column_names ({len(self.column_names)}) does not match number of variables ({n_vars}).")
+        else:
+            self.column_names = [f"Variable_{i+1}" for i in range(n_vars)]
 
         random_matrix = self._generate_uncorrelated_random(
             self.num_simulations, n_vars, target_skew, target_kurt
@@ -79,8 +121,8 @@ class RandomSimulator:
         if self.parameters is not None:
             random_matrix = random_matrix * self.parameters
 
-        df_normal = pd.DataFrame(random_matrix, columns=[
-                                 f"Variable_{i+1}" for i in range(n_vars)])
+        df_normal = pd.DataFrame(random_matrix, columns=self.column_names)
+
         return df_normal
 
     def _generate_uncorrelated_random(self, num_samples, num_variables, target_skew, target_kurt):

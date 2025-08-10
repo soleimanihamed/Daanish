@@ -239,3 +239,117 @@ class RandomSimulator:
             df_beta = pd.DataFrame(beta_draws, columns=self.column_names)
 
         return df_beta
+
+    def simulate_lognormal(self):
+        """
+        Simulates uncorrelated Lognormal-distributed values for each parameter set (s, loc, scale).
+        Parameters shape:
+        - If (s, loc, scale) provided → shape: (n, 3)
+        Returns
+        -------
+        pandas.DataFrame
+            A DataFrame containing uncorrelated Lognormal-distributed simulations
+            for each variable.
+        """
+        if self.parameters is None:
+            raise ValueError(
+                "Lognormal simulation requires parameter sets (s, loc, scale)."
+            )
+
+        if not isinstance(self.parameters, np.ndarray):
+            self.parameters = np.array(self.parameters, dtype=float)
+
+        if self.parameters.shape[1] != 3:
+            raise ValueError(
+                f"Lognormal simulation requires parameters of shape ({self.n}, 3)."
+            )
+
+        s = self.parameters[:, 0]
+        loc = self.parameters[:, 1]
+        scale = self.parameters[:, 2]
+
+        meanlog = np.log(scale)  # convert scale to meanlog
+
+        # Generate samples
+        lognorm_draws = np.array([
+            loc[i] + np.random.lognormal(meanlog[i],
+                                         s[i], size=self.num_simulations)
+            for i in range(self.n)
+        ]).T
+
+        # Standardize
+        standardized = (lognorm_draws - np.mean(lognorm_draws,
+                        axis=0)) / np.std(lognorm_draws, axis=0)
+
+        # Decorrelate
+        if self.n > 1:
+            cov_matrix = np.cov(standardized, rowvar=False)
+            eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+            decorrelated = standardized @ eigenvectors @ np.diag(
+                1 / np.sqrt(eigenvalues)) @ eigenvectors.T
+
+            for i in range(self.n):
+                np.random.shuffle(decorrelated[:, i])
+
+            decorrelated_scaled = decorrelated * \
+                np.std(lognorm_draws, axis=0) + np.mean(lognorm_draws, axis=0)
+            df_lognorm = pd.DataFrame(
+                decorrelated_scaled, columns=self.column_names)
+        else:
+            df_lognorm = pd.DataFrame(lognorm_draws, columns=self.column_names)
+
+        return df_lognorm
+
+    def simulate_gamma(self):
+        """
+        Simulates uncorrelated Gamma-distributed values for each parameter set (shape, loc, scale).
+        Parameters shape:
+        - shape (a), loc, scale → shape (n, 3)
+        Returns
+        -------
+        pandas.DataFrame
+        """
+        if self.parameters is None:
+            raise ValueError(
+                "Gamma simulation requires parameter sets (shape, loc, scale).")
+
+        if not isinstance(self.parameters, np.ndarray):
+            self.parameters = np.array(self.parameters, dtype=float)
+
+        if self.parameters.shape[1] != 3:
+            raise ValueError(
+                f"Gamma simulation requires parameters of shape ({self.n}, 3).")
+
+        shape = self.parameters[:, 0]
+        loc = self.parameters[:, 1]
+        scale = self.parameters[:, 2]
+
+        # Generate samples
+        gamma_draws = np.array([
+            loc[i] + np.random.gamma(shape[i], scale[i],
+                                     size=self.num_simulations)
+            for i in range(self.n)
+        ]).T
+
+        # Standardize
+        standardized = (gamma_draws - np.mean(gamma_draws, axis=0)
+                        ) / np.std(gamma_draws, axis=0)
+
+        # Decorrelate
+        if self.n > 1:
+            cov_matrix = np.cov(standardized, rowvar=False)
+            eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+            decorrelated = standardized @ eigenvectors @ np.diag(
+                1 / np.sqrt(eigenvalues)) @ eigenvectors.T
+
+            for i in range(self.n):
+                np.random.shuffle(decorrelated[:, i])
+
+            decorrelated_scaled = decorrelated * \
+                np.std(gamma_draws, axis=0) + np.mean(gamma_draws, axis=0)
+            df_gamma = pd.DataFrame(
+                decorrelated_scaled, columns=self.column_names)
+        else:
+            df_gamma = pd.DataFrame(gamma_draws, columns=self.column_names)
+
+        return df_gamma

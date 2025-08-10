@@ -64,7 +64,7 @@ class StatisticalAnalysis:
 
         return results
 
-    def fit_best_distribution(self, numeric_variables: list, method='sumsquare_error', common_distributions=True, timeout=60):
+    def fit_best_distribution(self, numeric_variables: list, method='sumsquare_error', common_distributions=True, distribution_list=None, timeout=60):
         """
         Fits the best probability distribution for each numeric variable in the input list.
 
@@ -72,6 +72,7 @@ class StatisticalAnalysis:
             numeric_variables (list): List of column names to analyze.
             method (str): Method to find the best fit ('sumsquare_error', 'aic', 'bic').
             common_distributions (bool): If True, uses only common distributions to avoid long runtime.
+            distribution_list (list): Optional list of distribution names to consider.
             timeout (int): Timeout for fitting each distribution (in seconds).
 
         Returns:
@@ -108,6 +109,14 @@ class StatisticalAnalysis:
             print("❌ No numeric features to fit distributions on.")
             return {}
 
+        # Decide which distributions to use
+        if common_distributions:
+            distributions_to_use = common_dists
+        elif distribution_list is not None:
+            distributions_to_use = distribution_list
+        else:
+            distributions_to_use = None  # Let Fitter use all available
+
         # Iterate over the input variables
         for variable in numeric_variables:
             # Check if the variable is numeric
@@ -117,12 +126,9 @@ class StatisticalAnalysis:
                 # Drop missing values
                 data = self.data[variable].dropna()
 
-                # Select distributions based on user choice
-                distributions = common_dists if common_distributions else None
-
                 # Initialize Fitter
                 fitter = Fitter(
-                    data, distributions=distributions, timeout=timeout)
+                    data, distributions=distributions_to_use, timeout=timeout)
 
                 try:
                     # Fit the distributions

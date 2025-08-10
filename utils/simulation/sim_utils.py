@@ -166,3 +166,76 @@ class RandomSimulator:
             np.random.shuffle(decorrelated[:, i])
 
         return decorrelated
+
+    def simulate_beta(self):
+        """
+        Simulates uncorrelated Beta-distributed values for each parameter set (α, β, loc, scale).
+
+        Parameters shape:
+        - If only (α, β) provided → shape: (n, 2), defaults loc=0, scale=1
+        - If (α, β, loc, scale) provided → shape: (n, 4)
+
+        Returns
+        -------
+        pandas.DataFrame
+            A DataFrame containing uncorrelated Beta-distributed simulations
+            for each variable.
+        """
+
+        if self.parameters is None:
+            raise ValueError(
+                "Beta simulation requires parameter sets (alpha, beta) or (alpha, beta, loc, scale)."
+            )
+
+        # Ensure parameters are a NumPy array
+        if not isinstance(self.parameters, np.ndarray):
+            self.parameters = np.array(self.parameters, dtype=float)
+
+        if self.parameters.shape[1] not in (2, 4):
+            raise ValueError(
+                f"Beta simulation requires parameters of shape ({self.n}, 2) or ({self.n}, 4)."
+            )
+
+        # Split parameters
+        if self.parameters.shape[1] == 2:
+            alpha = self.parameters[:, 0]
+            beta = self.parameters[:, 1]
+            loc = np.zeros(self.n)
+            scale = np.ones(self.n)
+        else:
+            alpha = self.parameters[:, 0]
+            beta = self.parameters[:, 1]
+            loc = self.parameters[:, 2]
+            scale = self.parameters[:, 3]
+
+        # Generate raw beta samples with loc & scale
+        beta_draws = np.array([
+            loc[i] + scale[i] *
+            np.random.beta(alpha[i], beta[i], size=self.num_simulations)
+            for i in range(self.n)
+        ]).T  # Shape: (num_simulations, n)
+
+        # Standardize
+        standardized = (beta_draws - np.mean(beta_draws, axis=0)
+                        ) / np.std(beta_draws, axis=0)
+
+        # Decorrelate
+        if self.n > 1:
+            cov_matrix = np.cov(standardized, rowvar=False)
+            eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+            decorrelated = standardized @ eigenvectors @ np.diag(
+                1 / np.sqrt(eigenvalues)) @ eigenvectors.T
+
+            # Shuffle each column to break residual patterns
+            for i in range(self.n):
+                np.random.shuffle(decorrelated[:, i])
+
+            # Reintroduce Beta-like structure (with loc & scale)
+            decorrelated_scaled = decorrelated * \
+                np.std(beta_draws, axis=0) + np.mean(beta_draws, axis=0)
+            df_beta = pd.DataFrame(decorrelated_scaled,
+                                   columns=self.column_names)
+        else:
+            df_beta = pd.DataFrame(beta_draws, columns=self.column_names)
+
+        return df_beta

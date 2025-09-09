@@ -1,8 +1,14 @@
 # daanish/utils/modelling/classification/base_classification_model.py
 
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score, f1_score,
+    roc_auc_score, log_loss, brier_score_loss, average_precision_score,
+    confusion_matrix, classification_report, matthews_corrcoef,
+    balanced_accuracy_score
+)
 from utils.modelling.classification.scoring import SCORER_FUNCTIONS, get_scorer
 from utils.importance.permutation_importance import PermutationImportance
 from utils.preprocessing.balancing import ImbalanceHandler
@@ -215,6 +221,11 @@ class BaseClassificationModel:
             self.X_test, self.y_test = X_test, y_test
             self.X_eval, self.y_eval = X_eval, y_eval
 
+            # Ensure y arrays are 1-D to avoid sklearn DataConversionWarning (column-vector)
+            self.y_train = self._safe_flatten_y(self.y_train)
+            self.y_test = self._safe_flatten_y(self.y_test)
+            self.y_eval = self._safe_flatten_y(self.y_eval)
+
         else:
             self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
                 X, y,
@@ -222,6 +233,15 @@ class BaseClassificationModel:
                 stratify=y,
                 random_state=self.random_state
             )
+
+            # Ensure y arrays are 1-D to avoid sklearn DataConversionWarning (column-vector)
+            self.y_train = self._safe_flatten_y(self.y_train)
+            self.y_test = self._safe_flatten_y(self.y_test)
+
+            # If user provided external eval data earlier (eval_size==0 but X_eval/y_eval passed),
+            # make sure it's also flattened
+            if self.X_eval is not None and self.y_eval is not None:
+                self.y_eval = self._safe_flatten_y(self.y_eval)
 
         # Check imbalance after split
         imbalance_handler = ImbalanceHandler(random_state=self.random_state)
@@ -244,6 +264,12 @@ class BaseClassificationModel:
             self.X_test[cols_to_scale] = self.scaler.transform(self.X_test)
             if self.X_eval is not None:
                 self.X_eval[cols_to_scale] = self.scaler.transform(self.X_eval)
+
+    def _safe_flatten_y(self, y):
+        """Return y as a 1-D numpy array to avoid DataConversionWarning."""
+        if isinstance(y, (pd.Series, pd.DataFrame)):
+            return np.asarray(y).ravel()
+        return np.ravel(y)
 
     def predict_test(self, include_id=False):
         """
@@ -339,6 +365,9 @@ class BaseClassificationModel:
             The model performance score based on the specified scoring metric.
         """
 
+        # Ensure y_test is 1-D to avoid DataConversionWarning in sklearn scorers
+        y_test = self._safe_flatten_y(y_test)
+
         # Use y_proba if metric requires probability
         y_pred = self.model.predict(X_test)
 
@@ -415,6 +444,12 @@ class BaseClassificationModel:
                 ...
             }
         """
+        # Coerce y to 1-D
+        y = self._safe_flatten_y(y)
+
+        y_pred = self.model.predict(X)
+        y_proba = self.model.predict_proba(X)[:, 1]
+
         y_pred = self.model.predict(X)
         y_proba = self.model.predict_proba(X)[:, 1]
 
@@ -459,6 +494,101 @@ class BaseClassificationModel:
             raise ValueError("No evaluation dataset was provided.")
         return self.evaluate_all_metrics(self.X_eval, self.y_eval)
 
+    def get_metrics(self, X, y, y_proba=None, pos_label=1, include_report=False):
+        """
+        Compute a broad set of classification metrics for dataset (X, y).
+        - X: features
+        - y: true labels (Series/array). Will be coerced to 1D.
+        - y_proba: optional predicted probabilities for positive class. If None and model supports it, computed.
+        - include_report: if True, also include `classification_report(..., output_dict=True)` under key 'classification_report'.
+        Returns: dict of metrics.
+        """
+        # Ensure y is 1-D
+        y_true = self._safe_flatten_y(y)
+
+        # Predict labels
+        y_pred = self.model.predict(X)
+
+        # Predict probabilities if not provided and model can do it
+        if y_proba is None:
+            if hasattr(self.model, "predict_proba"):
+                try:
+                    y_proba = self.model.predict_proba(X)[:, 1]
+                except Exception:
+                    y_proba = None
+            else:
+                y_proba = None
+
+        # Prepare metrics dict
+        metrics = {}
+        # Label-based (need only y_true and y_pred)
+        metrics["accuracy"] = accuracy_score(y_true, y_pred)
+        metrics["balanced_accuracy"] = balanced_accuracy_score(y_true, y_pred)
+        metrics["precision"] = precision_score(y_true, y_pred, zero_division=0)
+        metrics["recall"] = recall_score(y_true, y_pred, zero_division=0)
+        metrics["f1"] = f1_score(y_true, y_pred, zero_division=0)
+        metrics["matthews_corrcoef"] = matthews_corrcoef(y_true, y_pred)
+
+        # Confusion counts & specificity / NPV
+        try:
+            tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+        except ValueError:
+            # not a binary confusion matrix; fill NaNs
+            tn = fp = fn = tp = np.nan
+
+        metrics.update({"tn": int(tn) if not np.isnan(tn) else np.nan,
+                        "fp": int(fp) if not np.isnan(fp) else np.nan,
+                        "fn": int(fn) if not np.isnan(fn) else np.nan,
+                        "tp": int(tp) if not np.isnan(tp) else np.nan})
+
+        # Specificity and NPV (if denominators non-zero)
+        metrics["specificity"] = (
+            tn / (tn + fp)) if (not np.isnan(tn) and (tn + fp) > 0) else np.nan
+        metrics["npv"] = (tn / (tn + fn)) if (not np.isnan(tn)
+                                              and (tn + fn) > 0) else np.nan
+
+        # Probability-based metrics (only if y_proba available and y_true has both classes)
+        if y_proba is not None and len(np.unique(y_true)) > 1:
+            try:
+                metrics["roc_auc"] = roc_auc_score(y_true, y_proba)
+            except Exception:
+                metrics["roc_auc"] = np.nan
+            try:
+                metrics["average_precision"] = average_precision_score(
+                    y_true, y_proba)  # PR-AUC
+            except Exception:
+                metrics["average_precision"] = np.nan
+            try:
+                metrics["log_loss"] = log_loss(y_true, y_proba)
+            except Exception:
+                metrics["log_loss"] = np.nan
+            try:
+                metrics["brier_score"] = brier_score_loss(y_true, y_proba)
+            except Exception:
+                metrics["brier_score"] = np.nan
+        else:
+            metrics["roc_auc"] = np.nan
+            metrics["average_precision"] = np.nan
+            metrics["log_loss"] = np.nan
+            metrics["brier_score"] = np.nan
+
+        # Optional full classification_report dict
+        if include_report:
+            metrics["classification_report"] = classification_report(
+                y_true, y_pred, output_dict=True)
+
+        return metrics
+
+    def get_test_metrics(self, include_report=False):
+        """Return metrics computed on the internal test set."""
+        return self.get_metrics(self.X_test, self.y_test, include_report=include_report)
+
+    def get_eval_metrics(self, include_report=False):
+        """Return metrics computed on the external/internal evaluation set (raises if none)."""
+        if not self.has_eval_data():
+            raise ValueError("No evaluation dataset was provided.")
+        return self.get_metrics(self.X_eval, self.y_eval, include_report=include_report)
+
     def get_classification_report(self, X, y, output_dict=True):
         """
         Generate a classification report for a given dataset.
@@ -483,8 +613,9 @@ class BaseClassificationModel:
         dict or str
             Classification report with precision, recall, F1-score, and support for each class.
         """
+        y_true = self._safe_flatten_y(y)
         y_pred = self.model.predict(X)
-        return classification_report(y, y_pred, output_dict=output_dict)
+        return classification_report(y_true, y_pred, output_dict=output_dict)
 
     def get_test_classification_report(self, output_dict=True):
         """
@@ -550,8 +681,9 @@ class BaseClassificationModel:
         np.ndarray
             Confusion matrix as a 2D array.
         """
+        y_true = self._safe_flatten_y(y)
         y_pred = self.model.predict(X)
-        return confusion_matrix(y, y_pred, normalize=normalize)
+        return confusion_matrix(y_true, y_pred, normalize=normalize)
 
     def get_test_confusion_matrix(self, normalize=None):
         """

@@ -37,17 +37,8 @@ So far, the core solution has laid a strong foundation for handling various type
 - **Probability Distribution Fitting**: Fitting statistical distributions to data for model validation and feature engineering.
 - **Outlier Detection and Handling**: Advanced techniques to identify and mitigate outliers in the data, with customizable strategies for each feature..
 - **Advanced Data Cleaning**: Improved techniques for handling missing data, noisy data, and feature scaling, with customizable strategies for each feature..
-  
----
-
-## What's Next?
-
-In the coming weeks, additional functionalities and enhancements will be added to take the solution to the next level:
-
 - **Advanced Descriptive Analysis**: More in-depth statistical summaries, including higher-level metrics and visualizations.
-- **Machine Learning Enhancements**: Adding models, including ensemble methods, deep learning approaches, and model fine-tuning.
-- **Deployment-Ready**: Preparing the solution for integration into real-time applications and production environments.
-
+- **Machine Learning Enhancements**: Models, including ensemble methods, deep learning approaches, and model fine-tuning.
 ---
 
 ## Goal
@@ -67,7 +58,7 @@ In a world driven by data, speed, and accuracy are paramount. The goal of this p
 The core solution leverages a range of tools and libraries for data analysis, machine learning, and model deployment:
 
 - **Python**
-  - Libraries: **Pandas**, **NumPy**, **Scikit-learn**, **XGBoost**, **LightGBM**, **TensorFlow**, **Keras**, **Matplotlib**, **Seaborn**, **Sweetviz**
+  - Libraries: **Pandas**, **NumPy**, **Scikit-learn**, **XGBoost**, **TensorFlow**, **Keras**, **Matplotlib**, **Seaborn**
 - **Jupyter Notebooks**  
   - For interactive development and visualization.
 - **Flask** (optional for deployment)  

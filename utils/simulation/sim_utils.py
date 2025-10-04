@@ -68,6 +68,12 @@ class RandomSimulator:
             decorrelated_scaled = decorrelated * \
                 np.std(poisson_draws, axis=0) + np.mean(poisson_draws, axis=0)
 
+            # Round to nearest integer
+            decorrelated_scaled = np.round(decorrelated_scaled)
+
+            # Replace negative values with zero
+            decorrelated_scaled[decorrelated_scaled < 0] = 0
+
             df_poisson = pd.DataFrame(
                 decorrelated_scaled, columns=self.column_names)
 

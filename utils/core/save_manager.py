@@ -3,6 +3,7 @@
 import os
 import pandas as pd
 import json
+from openpyxl import load_workbook
 
 
 class SaveUtils:
@@ -38,22 +39,28 @@ class SaveUtils:
     def save_dataframe_to_excel(self, df, full_path_name, sheet_name='Sheet1', overwrite=True, index=False):
         """
         Saves a pandas DataFrame to an Excel file with the given sheet name.
+        If the file already exists, appends a new sheet without deleting existing ones.
 
         Args:
             df (pandas.DataFrame): DataFrame to save.
             full_path_name (str): Full path and filename for the Excel file.
             sheet_name (str): Name of the sheet in the Excel file.
             overwrite (bool): Whether to overwrite the file if it exists.
+            index (bool): Whether to include the DataFrame index in the Excel file.
         """
         try:
+            # If file exists and overwrite=False, append as new sheet
             if os.path.exists(full_path_name) and not overwrite:
+                with pd.ExcelWriter(full_path_name, engine='openpyxl', mode='a', if_sheet_exists='replace') as writer:
+                    df.to_excel(writer, sheet_name=sheet_name, index=index)
                 print(
-                    f"File {full_path_name} already exists. Set overwrite=True to overwrite it.")
-                return
+                    f"Appended sheet '{sheet_name}' to existing Excel file: {full_path_name}")
+            else:
+                # Either file does not exist or overwrite=True
+                with pd.ExcelWriter(full_path_name, engine='openpyxl', mode='w') as writer:
+                    df.to_excel(writer, sheet_name=sheet_name, index=index)
+                print(f"Excel file saved to {full_path_name} successfully.")
 
-            df.to_excel(full_path_name, sheet_name=sheet_name,
-                        index=index, engine='openpyxl')
-            print(f"Excel file saved to {full_path_name} successfully.")
         except Exception as e:
             print(f"Error occurred while saving Excel file: {e}")
 

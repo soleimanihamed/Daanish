@@ -20,7 +20,7 @@ class RandomSimulator:
         Optional names for the simulated columns. If not provided, generic names are used.
     """
 
-    def __init__(self, parameters=None, num_simulations=10000, column_names=None):
+    def __init__(self, parameters=None, num_simulations=10000, column_names=None, decorrelate=True):
         self.parameters = np.array(
             parameters) if parameters is not None else None
         self.num_simulations = num_simulations
@@ -30,8 +30,9 @@ class RandomSimulator:
             else [f"Variable_{i+1}" for i in range(self.n)] if self.n is not None
             else None
         )
+        self.decorrelate = decorrelate
 
-    def simulate_poisson(self):
+    def simulate_poisson(self, decorrelate=None):
         """
         Simulates uncorrelated Poisson-distributed values for each parameter.
 
@@ -54,7 +55,7 @@ class RandomSimulator:
                         axis=0)) / np.std(poisson_draws, axis=0)
 
         # Decorrelate
-        if self.n > 1:
+        if decorrelate and self.n > 1:
             cov_matrix = np.cov(standardized, rowvar=False)
             eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
             decorrelated = standardized @ eigenvectors @ np.diag(
@@ -82,7 +83,7 @@ class RandomSimulator:
 
         return df_poisson
 
-    def simulate_normal(self, target_skew=0, target_kurt=3, num_variables=None):
+    def simulate_normal(self, target_skew=0, target_kurt=3, num_variables=None, decorrelate=None):
         """
         Simulates uncorrelated normal distributions with optional adjustment for skewness and kurtosis.
 
@@ -105,7 +106,7 @@ class RandomSimulator:
             n_vars = self.n
         elif num_variables is not None:
             n_vars = num_variables
-            self.parameters = np.ones(n_vars)  # default std = 1 if no scaling
+            self.parameters = np.ones(n_vars)
             self.n = n_vars
         else:
             raise ValueError(
@@ -120,31 +121,54 @@ class RandomSimulator:
             self.column_names = [f"Variable_{i+1}" for i in range(n_vars)]
 
         random_matrix = self._generate_uncorrelated_random(
-            self.num_simulations, n_vars, target_skew, target_kurt
+            self.num_simulations, n_vars, target_skew, target_kurt, decorrelate
         )
 
         # If parameters are provided, scale the results by parameters (e.g., standard deviations, volatilities, etc.)
         if self.parameters is not None:
-            random_matrix = random_matrix * self.parameters
+            if self.parameters.ndim == 1:  # Only std provided
+                random_matrix = random_matrix * self.parameters
+            elif self.parameters.shape[1] == 2:  # Mean and std provided
+                means = self.parameters[:, 0]
+                stds = self.parameters[:, 1]
+                random_matrix = random_matrix * stds + means
+            else:
+                raise ValueError(
+                    "Normal simulation parameters must be 1D (std) or 2D (mean, std).")
 
         df_normal = pd.DataFrame(random_matrix, columns=self.column_names)
 
         return df_normal
 
-    def _generate_uncorrelated_random(self, num_samples, num_variables, target_skew, target_kurt):
+    def _generate_uncorrelated_random(self, num_samples, num_variables, target_skew, target_kurt, decorrelate=True):
         """
-        Internal method for generating uncorrelated standard normal variables
-        with desired skewness and kurtosis.
+        Internal method for generating standard normal variables with optional
+        skewness, kurtosis, and decorrelation adjustment.
+
+        Parameters
+        ----------
+        num_samples : int
+            Number of random samples to generate.
+        num_variables : int
+            Number of independent variables (columns) to simulate.
+        target_skew : float
+            Desired skewness (0 for symmetric).
+        target_kurt : float
+            Desired kurtosis (3 for normal).
+        decorrelate : bool, optional
+            Whether to decorrelate the simulated variables (default is True).
 
         Returns
         -------
         np.ndarray
-            A matrix of shape (num_samples, num_variables) containing uncorrelated,
-            standardized random numbers.
+            A matrix of shape (num_samples, num_variables) containing
+            simulated, standardized random numbers.
         """
+        # Step 1: Generate base normal random numbers
         random_numbers = np.random.normal(
             loc=0, scale=1, size=(num_samples, num_variables))
 
+        # Step 2: Adjust each variable for skewness and kurtosis
         for i in range(num_variables):
             col = random_numbers[:, i]
             col = (col - np.mean(col)) / np.std(col)
@@ -155,25 +179,30 @@ class RandomSimulator:
             if target_kurt != 3:
                 col += (target_kurt - 3) * (col ** 4 - 3 * col ** 2 + 1)
 
+            # Re-standardize after transformation
             col = (col - np.mean(col)) / np.std(col)
             random_numbers[:, i] = col
 
-        # Skip decorrelation if only one variable
-        if num_variables == 1:
-            return random_numbers
+        # Step 3: Optionally decorrelate
+        if decorrelate and num_variables > 1:
+            cov_matrix = np.cov(random_numbers, rowvar=False)
+            eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
 
-        # Decorrelate
-        cov_matrix = np.cov(random_numbers, rowvar=False)
-        eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
-        decorrelated = random_numbers @ eigenvectors @ np.diag(
-            1 / np.sqrt(eigenvalues)) @ eigenvectors.T
+            # Apply whitening transformation
+            decorrelated = random_numbers @ eigenvectors @ np.diag(
+                1 / np.sqrt(eigenvalues)
+            ) @ eigenvectors.T
 
-        for i in range(num_variables):
-            np.random.shuffle(decorrelated[:, i])
+            # Shuffle each column to break residual structure
+            for i in range(num_variables):
+                np.random.shuffle(decorrelated[:, i])
 
-        return decorrelated
+            return decorrelated
 
-    def simulate_beta(self):
+        # If decorrelation is off or only one variable
+        return random_numbers
+
+    def simulate_beta(self, decorrelate=None):
         """
         Simulates uncorrelated Beta-distributed values for each parameter set (α, β, loc, scale).
 
@@ -226,7 +255,7 @@ class RandomSimulator:
                         ) / np.std(beta_draws, axis=0)
 
         # Decorrelate
-        if self.n > 1:
+        if decorrelate and self.n > 1:
             cov_matrix = np.cov(standardized, rowvar=False)
             eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
             decorrelated = standardized @ eigenvectors @ np.diag(
@@ -246,7 +275,7 @@ class RandomSimulator:
 
         return df_beta
 
-    def simulate_lognormal(self):
+    def simulate_lognormal(self, decorrelate=None):
         """
         Simulates uncorrelated Lognormal-distributed values for each parameter set (s, loc, scale).
         Parameters shape:
@@ -288,7 +317,7 @@ class RandomSimulator:
                         axis=0)) / np.std(lognorm_draws, axis=0)
 
         # Decorrelate
-        if self.n > 1:
+        if decorrelate and self.n > 1:
             cov_matrix = np.cov(standardized, rowvar=False)
             eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
             decorrelated = standardized @ eigenvectors @ np.diag(
@@ -306,7 +335,7 @@ class RandomSimulator:
 
         return df_lognorm
 
-    def simulate_gamma(self):
+    def simulate_gamma(self, decorrelate=None):
         """
         Simulates uncorrelated Gamma-distributed values for each parameter set (shape, loc, scale).
         Parameters shape:
@@ -342,7 +371,7 @@ class RandomSimulator:
                         ) / np.std(gamma_draws, axis=0)
 
         # Decorrelate
-        if self.n > 1:
+        if decorrelate and self.n > 1:
             cov_matrix = np.cov(standardized, rowvar=False)
             eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
             decorrelated = standardized @ eigenvectors @ np.diag(

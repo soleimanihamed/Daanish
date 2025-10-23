@@ -358,3 +358,37 @@ class CorrelationAnalyzer:
                     high_corr[key] = corr_pairs[corr_pairs['Correlation'].abs()
                                                 >= threshold]
         return high_corr
+
+    def show_correlation_pivot(self, num_method="pearson", cat_method="cramers_v",
+                               cat_num_method="correlation_ratio", sort=True):
+        """
+        Displays the correlation results in pivot (matrix) format for easier interpretation.
+
+        Args:
+            num_method (str, optional): Method for numerical correlation. Defaults to 'pearson'.
+            cat_method (str, optional): Method for categorical correlation. Defaults to 'cramers_v'.
+            cat_num_method (str, optional): Method for categorical-numerical association. Defaults to 'correlation_ratio'.
+            sort (bool, optional): Whether to sort rows/columns in natural order (A1, A2, ...). Defaults to True.
+
+        Returns:
+            pd.DataFrame: A symmetric pivot-style correlation matrix.
+        """
+        _, matrix = self.correlation_matrix(
+            num_method=num_method,
+            cat_method=cat_method,
+            cat_num_method=cat_num_method,
+            return_matrix=True
+        )
+
+        if sort:
+            # natural sort key: splits strings into text and integers so "A10" sorts after "A9"
+            import re
+
+            def natural_sort_key(s):
+                return [int(text) if text.isdigit() else text.lower()
+                        for text in re.split(r'(\d+)', str(s))]
+            sorted_index = sorted(matrix.index.tolist(), key=natural_sort_key)
+            # ensure both index and columns follow the same ordering
+            matrix = matrix.reindex(index=sorted_index, columns=sorted_index)
+
+        return matrix

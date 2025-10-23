@@ -4,6 +4,7 @@ from scipy import stats
 from dython.nominal import associations
 import pandas as pd
 from fitter import Fitter
+import numpy as np
 
 
 class StatisticalAnalysis:
@@ -241,3 +242,65 @@ class StatisticalAnalysis:
             return table.round(4).style.format("{:.0%}")
 
         return table
+
+    def compute_cdf(self, fitted_results):
+        """
+        Computes the CDF values for each feature in the DataFrame based on 
+        their best-fitted distributions and parameters.
+
+        Args:
+            fitted_results (dict): Output of fit_best_distribution(). 
+                Example structure:
+                {
+                    'A1': {'best_distribution': 'lognorm', 'parameters': {'s': 0.38, 'loc': -49871, 'scale': 1268832}},
+                    'A2': {'best_distribution': 'beta', 'parameters': {'a': 5.1, 'b': 3.1, 'loc': 650000, 'scale': 3700000}},
+                    ...
+                }
+
+        Returns:
+            pandas.DataFrame: DataFrame of same shape as input, 
+                              where each numeric feature is replaced with its CDF values (0–1 range).
+        """
+        from scipy import stats
+        import numpy as np
+        import pandas as pd
+
+        cdf_df = pd.DataFrame(index=self.data.index)
+
+        for feature, fit_info in fitted_results.items():
+            if feature not in self.data.columns:
+                print(f"⚠️ Skipping {feature}: not found in data.")
+                continue
+
+            dist_name = fit_info.get("best_distribution")
+            params = fit_info.get("parameters")
+
+            if not dist_name or not params:
+                print(
+                    f"⚠️ Skipping {feature}: no valid distribution or parameters.")
+                continue
+
+            # Get the scipy.stats distribution object
+            try:
+                dist = getattr(stats, dist_name)
+            except AttributeError:
+                print(
+                    f"⚠️ Distribution {dist_name} not found in scipy.stats. Skipping {feature}.")
+                continue
+
+            # Compute CDF safely
+            feature_data = self.data[feature].dropna()
+            try:
+                cdf_values = dist.cdf(feature_data, **params)
+
+                # Replace NaN or invalid values
+                cdf_values = np.clip(cdf_values, 1e-10, 1 - 1e-10)
+
+                # Align with index
+                cdf_df[feature] = pd.Series(
+                    cdf_values, index=feature_data.index)
+            except Exception as e:
+                print(f"❌ Error computing CDF for {feature}: {e}")
+
+        print("✅ CDF computation completed for all valid features.")
+        return cdf_df

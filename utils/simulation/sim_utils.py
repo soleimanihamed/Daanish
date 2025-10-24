@@ -83,7 +83,7 @@ class RandomSimulator:
 
         return df_poisson
 
-    def simulate_normal(self, target_skew=0, target_kurt=3, num_variables=None, decorrelate=None):
+    def simulate_normal(self, target_skew=0, target_kurt=3, num_variables=None, decorrelate=None, loc=0, scale=1):
         """
         Simulates uncorrelated normal distributions with optional adjustment for skewness and kurtosis.
 
@@ -95,12 +95,18 @@ class RandomSimulator:
             Desired kurtosis for each variable (default is 3, i.e., normal kurtosis).
         num_variables : int, optional
             Number of variables to simulate. Required if `parameters` are not provided.
+        loc : float, optional
+            Mean (location parameter) of the normal distribution. Default is 0.
+        scale : float, optional
+            Standard deviation (scale parameter) of the normal distribution. Default is 1.
 
         Returns
         -------
         pandas.DataFrame
             A DataFrame containing uncorrelated simulated values adjusted for skewness and kurtosis.
         """
+        self.loc = loc
+        self.scale = scale
 
         if self.parameters is not None:
             n_vars = self.n
@@ -166,7 +172,7 @@ class RandomSimulator:
         """
         # Step 1: Generate base normal random numbers
         random_numbers = np.random.normal(
-            loc=0, scale=1, size=(num_samples, num_variables))
+            loc=self.loc, scale=self.scale, size=(num_samples, num_variables))
 
         # Step 2: Adjust each variable for skewness and kurtosis
         for i in range(num_variables):
